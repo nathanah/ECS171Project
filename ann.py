@@ -91,9 +91,9 @@ for layers in range(1,maxLayers+1):
     for nodes in range(0,len(gridNodes)):
         #set up ann
         ann = Sequential()
-        ann.add(Dense(units=gridNodes[nodes], input_shape=(57,), activation="relu")) #hidden layers
+        ann.add(Dense(units=gridNodes[nodes], input_shape=(57,), activation="sigmoid")) #hidden layers
         for l in range(1,layers):
-            ann.add(Dense(units=gridNodes[nodes], activation="relu"))
+            ann.add(Dense(units=gridNodes[nodes], activation="sigmoid"))
         ann.add(Dense(units=1, activation="sigmoid")) #output layer
 
 
@@ -108,8 +108,9 @@ for layers in range(1,maxLayers+1):
         info = ann.fit(x,y,
                         validation_split=.34,
                         shuffle=False,
-                        epochs=10,
+                        epochs=10000,
                         batch_size=32,
+                        verbose=0,
                         callbacks=[earlyStop])
         trainingAccuracy[layers-1][nodes] = info.history['accuracy'][len(info.history)-1]
         testingAccuracy[layers-1][nodes] = info.history['val_accuracy'][len(info.history)-1]
