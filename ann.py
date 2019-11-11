@@ -3,18 +3,15 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 import keras
-from sklearn.svm import OneClassSVM
 from keras.models import Sequential
 from keras.layers import Dense
-import matplotlib.pyplot as plt
-from sklearn.preprocessing import LabelEncoder
 from keras.utils import np_utils
 from keras import optimizers
 
 
 #import data
 file = "spambase.data"
-names = ["spamClassification",
+names = [
         "word_freq_make",
         "word_freq_address",
         "word_freq_all",
@@ -72,23 +69,26 @@ names = ["spamClassification",
         "capital_run_length_average",
         "capital_run_length_longest",
         "capital_run_length_total",
+        "spamClassification"
         ]
 data = pd.read_csv(file, delimiter=",", names=names)
 
-x = data.iloc[:,1:]
-y = data.iloc[:,0]
+x = data.iloc[:,data.columns != "spamClassification"]
+y = data.loc[:,"spamClassification"]
 
 
 
 
 #grid search
 maxLayers = 3
-gridNodes = [3,6,9,12]
+gridNodes = [3,6,10,15,30]
 trainingAccuracy = np.zeros((maxLayers,len(gridNodes)))
 testingAccuracy = np.zeros((maxLayers,len(gridNodes)))
 
 for layers in range(1,maxLayers+1):
+    print("Started Layer: %s" % layers)
     for nodes in range(0,len(gridNodes)):
+        print("Started Nodes: %s" % gridNodes[nodes])
         #set up ann
         ann = Sequential()
         ann.add(Dense(units=gridNodes[nodes], input_shape=(57,), activation="sigmoid")) #hidden layers
@@ -102,18 +102,18 @@ for layers in range(1,maxLayers+1):
         sgd = optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=False)
         ann.compile(loss="mean_squared_error",
                     optimizer=sgd,
-                    metrics=["accuracy"])
+                    metrics=["binary_accuracy"])
 
 
         info = ann.fit(x,y,
                         validation_split=.34,
-                        shuffle=False,
-                        epochs=10000,
+                        shuffle=True,
+                        epochs=1000,
                         batch_size=32,
                         verbose=0,
                         callbacks=[earlyStop])
-        trainingAccuracy[layers-1][nodes] = info.history['accuracy'][len(info.history)-1]
-        testingAccuracy[layers-1][nodes] = info.history['val_accuracy'][len(info.history)-1]
+        trainingAccuracy[layers-1][nodes] = info.history['binary_accuracy'][len(info.history)-1]
+        testingAccuracy[layers-1][nodes] = info.history['val_binary_accuracy'][len(info.history)-1]
 
 
 
