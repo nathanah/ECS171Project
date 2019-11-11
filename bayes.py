@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import random
+
 
 def readFile():
     #import data
@@ -65,30 +67,156 @@ def readFile():
             "spamClassification"
             ]
     data = pd.read_csv(file, delimiter=",", names=names)
+    data = np.array(data)
 
-    x = data.iloc[:,:57]
-    y = data.iloc[:,57]
+    #Bucket data:
+    bucket(2, data)
+
+    #Shuffle data:
+    random.shuffle(data)
+
+    x = data[:,:57]
+    y = data[:,57]
 
     return [x, y]
 
-def prior():
 
-    return
+"""
+    Bayes nets usually work on discrete values, not continuous variables.
+    This function transforms the continuous values of our data into discrete buckets with labels.
 
-def posterior():
+    Params:
+        buckets: the number of buckets we are dividing the data into (quantiles)
+        data: the entire set of data before it has been split into X and Y
 
-    return
+    Side-effect:
+        data is transformed and no longer the same as before it was passed in
+"""
+def bucket(buckets, data):
 
-def likelihood():
+    #Go through each column except for the label
+    for i in range(57):
 
-    return
+        #Sort the data on the given column
+        data = data[np.argsort(data[:, i])]
+
+        #Variable to store the lower bound of the current quantile
+        lower = 0
+
+        #Go through each quantile labeling it with the proper bucket
+        for j in range(buckets):
+
+            #Get the upper cutoff of the current quantile.
+            upper = (j+1) * (len(data) / buckets)
+            upper = int(upper)
+
+            #Label all samples in range with current bucket
+            data[lower:upper, i] = j
+
+            #Upper cutoff becomes lower bound.
+            lower = upper
+
+"""
+    Prior is defined as the probability of any sample being in the class.
+    We can calculate this by just counting up the number of samples that are spam.
+    P(not spam) = (1 - P(spam))
+
+    Params:
+        y: the labels for all of our data
+
+    Returns:
+        Probability of any sample being spam
+"""
+def prior(y):
+
+    spam = 0
+
+    for i in range(len(y)):
+        if y[i] == 1:
+            spam += 1
+
+    return spam / len(y)
+
+"""
+    Likelihood is the probability P(xj | spam/not-spam)
+    We can calculate this by looking looking at the number of elements in that class that have the certain feature we are looking for.
+
+    That is: (count of v in c) / (total number of samples in c)
+
+    Params:
+        x: our set of all samples X
+        y: our set of all labels Y
+        j: the column we are looking at
+        v: the value we are looking for in the column
+        c: what class we are looking at
+
+    Returns:
+        P(xj | spam/not-spam)
+"""
+def likelihood(x, y, j, v, c):
+
+    #Count of occurences of that value
+    count = 0
+
+    #Total count of that class
+    total = 0
+
+    #Iterate through each sample
+    for i in range(len(x)):
+
+        #If the classes are the same update total number of that class
+        if y[i] == c :
+            total +=1
+
+            #If the values match update our count of value
+            if(x[i][j] == v):
+                count += 1
+    return count / total
+
+
+"""
+    Posterior is the probability P(Spam | x). We calculate this with Bayes theroem. And by doing a trick of P(Spam | X) / P(!Spam | X) and seeing if it is >= 1.
+
+    Params:
+        x: our set of all samples X
+        y: our set of all labels Y
+        i: the sample we are looking at
+"""
+
+def posterior(x, y, i):
+
+    #Get the probability that it is spam
+    numerator = 1
+    #Go through each feature and calculate likelihood, multiplying it
+    for j in range(57):
+        v = x[i][j]
+        numerator *= likelihood(x, y, j, v, 1)
+
+    #Get the probability that it is not spam
+    denominator = 1
+    #Go through each feature and calculate likelihood, multiplying it
+    for j in range(57):
+        v = x[i][j]
+        denominator *= likelihood(x, y, v, 0)
+
+    return numerator / denominator
+
 
 def main():
 
+    #Read in data and preprocess it
     data = readFile()
     x = data[0]
     y = data[1]
 
+    #Portion of samples to be used for training:
+    split = .7
+    cutoff = int(split * len(x))
 
+    #Split training and Testing sets
+    trainingX = x[:cutoff]
+    trainingY = y[:cutoff]
+    testingX = x[cutoff:]
+    testingY = y[cutoff:]
 
 main()
