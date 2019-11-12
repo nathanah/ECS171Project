@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 import random
 
@@ -6,67 +5,28 @@ import random
 def readFile():
     #import data
     file = "spambase.data"
-    names = [
-            "word_freq_make",
-            "word_freq_address",
-            "word_freq_all",
-            "word_freq_3d",
-            "word_freq_our",
-            "word_freq_over",
-            "word_freq_remove",
-            "word_freq_internet",
-            "word_freq_order",
-            "word_freq_mail",
-            "word_freq_receive",
-            "word_freq_will",
-            "word_freq_people",
-            "word_freq_report",
-            "word_freq_addresses",
-            "word_freq_free",
-            "word_freq_business",
-            "word_freq_email",
-            "word_freq_you",
-            "word_freq_credit",
-            "word_freq_your",
-            "word_freq_font",
-            "word_freq_000",
-            "word_freq_money",
-            "word_freq_hp",
-            "word_freq_hpl",
-            "word_freq_george",
-            "word_freq_650",
-            "word_freq_lab",
-            "word_freq_labs",
-            "word_freq_telnet",
-            "word_freq_857",
-            "word_freq_data",
-            "word_freq_415",
-            "word_freq_85",
-            "word_freq_technology",
-            "word_freq_1999",
-            "word_freq_parts",
-            "word_freq_pm",
-            "word_freq_direct",
-            "word_freq_cs",
-            "word_freq_meeting",
-            "word_freq_original",
-            "word_freq_project",
-            "word_freq_re",
-            "word_freq_edu",
-            "word_freq_table",
-            "word_freq_conference",
-            "char_freq_;",
-            "char_freq_(",
-            "char_freq_[",
-            "char_freq_!",
-            "char_freq_$",
-            "char_freq_#",
-            "capital_run_length_average",
-            "capital_run_length_longest",
-            "capital_run_length_total",
-            "spamClassification"
-            ]
-    data = pd.read_csv(file, delimiter=",", names=names)
+
+    file = open(file, 'r')
+    data = file.read()
+    data = data.split('\n')
+    data.pop(len(data)-1)
+
+    #Split each sample into its features and read as correct data type
+    for i in range(len(data)):
+        #Split features
+        data[i] = data[i].split(",")
+        if i < 5:
+            print("Num features:", len(data[i]))
+        #Cast each feature
+        for j in range(57):
+            data[i][j] = float(data[i][j])
+
+        #Read in class label as it, since it's 1/0
+        data[i][57] = int(data[i][57])
+
+    for i in range(10):
+        print(data[i])
+
     data = np.array(data)
 
     #Bucket data:
@@ -77,7 +37,7 @@ def readFile():
 
     x = data[:,:57]
     y = data[:,57]
-
+    print(y[0:20])
     return [x, y]
 
 
@@ -125,17 +85,19 @@ def bucket(buckets, data):
         y: the labels for all of our data
 
     Returns:
-        Probability of any sample being spam
+        Probability of any sample being spam (the prior)
 """
-def prior(y):
+def prior(Y):
 
     spam = 0
 
-    for i in range(len(y)):
-        if y[i] == 1:
+    for i in range(len(Y)):
+        if Y[i] == 1:
             spam += 1
 
-    return spam / len(y)
+    print("Num spam:", spam)
+
+    return spam / len(Y)
 
 """
     Likelihood is the probability P(xj | spam/not-spam)
@@ -153,7 +115,7 @@ def prior(y):
     Returns:
         P(xj | spam/not-spam)
 """
-def likelihood(x, y, j, v, c):
+def likelihood(X, Y, j, v, c):
 
     #Count of occurences of that value
     count = 0
@@ -162,14 +124,14 @@ def likelihood(x, y, j, v, c):
     total = 0
 
     #Iterate through each sample
-    for i in range(len(x)):
+    for i in range(len(X)):
 
         #If the classes are the same update total number of that class
-        if y[i] == c :
+        if Y[i] == c :
             total +=1
 
             #If the values match update our count of value
-            if(x[i][j] == v):
+            if(X[i][j] == v):
                 count += 1
 
     return count / total
@@ -183,26 +145,26 @@ def likelihood(x, y, j, v, c):
         y: our set of all labels Y to train from
         s: the sample we are looking at
 """
-
-def posterior(x, y, s):
+def posterior(X, Y, s):
 
     #Get the probability that it is spam
-    numerator = prior(y)
+    numerator = prior(Y)
 
     #Go through each feature and calculate likelihood, multiplying it
     for j in range(57):
         v = s[j]
-        numerator *= likelihood(x, y, j, v, 1)
+        numerator *= likelihood(X, Y, j, v, 1)
 
     #Get the probability that it is not spam
-    denominator = 1 - prior(y)
+    denominator = 1 - prior(Y)
 
     #Go through each feature and calculate likelihood, multiplying it
     for j in range(57):
         v = s[j]
-        denominator *= likelihood(x, y, j, v, 0)
+        denominator *= likelihood(X, Y, j, v, 0)
 
-    return numerator / denominator
+    #Fix divide by zero by adding 1 to top and bottom. Still maintains ratio.
+    return ( 1 + numerator) / (1 + denominator)
 
 def test(trainingX, trainingY, testingX, testingY):
 
@@ -247,6 +209,7 @@ def main():
     data = readFile()
     x = data[0]
     y = data[1]
+    print("Finished preprocessing.")
 
     #Portion of samples to be used for training:
     split = .7
@@ -257,6 +220,8 @@ def main():
     trainingY = y[:cutoff]
     testingX = x[cutoff:]
     testingY = y[cutoff:]
+
+    print("Prior of training data:", prior(trainingY))
 
     #IMPLEMENT TRAIN FUNCTION HERE THAT PRECALCULATES THE LIKELIHOOD FOR EACH FEATURE/VALUE COMBINATION
 
