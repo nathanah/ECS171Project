@@ -85,7 +85,6 @@ def bucket(buckets, data):
     Returns:
         Probability of any sample being spam (the prior)
 """
-
 def prior(Y):
 
     spam = 0
@@ -94,10 +93,7 @@ def prior(Y):
         if Y[i] == 1:
             spam += 1
 
-    print("Num spam:", spam)
-
     prior = spam / len(Y)
-
     return prior
 
 """
@@ -137,7 +133,6 @@ def likelihood(X, Y, j, v, c):
 
     return count / total
 
-
 """
     Posterior is the probability P(Spam | x). We calculate this with Bayes theroem. And by doing a trick of P(Spam | X) / P(!Spam | X) and seeing if it is >= 1.
 
@@ -145,11 +140,12 @@ def likelihood(X, Y, j, v, c):
         x: our set of all samples X to train from
         y: our set of all labels Y to train from
         s: the sample we are looking at
+        prior: the prior probabliity of a sample being spam
 """
-def posterior(X, Y, s):
+def posterior(X, Y, s, prior):
 
     #Get the probability that it is spam
-    numerator = prior(Y)
+    numerator = prior
 
     #Go through each feature and calculate likelihood, multiplying it
     for j in range(57):
@@ -157,7 +153,7 @@ def posterior(X, Y, s):
         numerator *= likelihood(X, Y, j, v, 1)
 
     #Get the probability that it is not spam
-    denominator = 1 - prior(Y)
+    denominator = 1 - prior
 
     #Go through each feature and calculate likelihood, multiplying it
     for j in range(57):
@@ -175,9 +171,13 @@ def test(trainingX, trainingY, testingX, testingY):
     FP = 0
     FN = 0
 
+    p = prior(trainingY)
+
+    print("Calculated prior:", p)
+
     #Go through each sample
     for i in range(len(testingX)):
-        predict = posterior(trainingX, trainingY, testingX[i])
+        predict = posterior(trainingX, trainingY, testingX[i], p)
 
         #If the prediction is >= it is spam
         if(predict >= 1):
@@ -213,7 +213,7 @@ def main():
     print("Finished preprocessing.")
 
     #Portion of samples to be used for training:
-    split = .7
+    split = .99
     cutoff = int(split * len(x))
 
     #Split training and Testing sets
