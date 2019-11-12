@@ -171,6 +171,7 @@ def likelihood(x, y, j, v, c):
             #If the values match update our count of value
             if(x[i][j] == v):
                 count += 1
+
     return count / total
 
 
@@ -178,29 +179,67 @@ def likelihood(x, y, j, v, c):
     Posterior is the probability P(Spam | x). We calculate this with Bayes theroem. And by doing a trick of P(Spam | X) / P(!Spam | X) and seeing if it is >= 1.
 
     Params:
-        x: our set of all samples X
-        y: our set of all labels Y
-        i: the sample we are looking at
+        x: our set of all samples X to train from
+        y: our set of all labels Y to train from
+        s: the sample we are looking at
 """
 
-def posterior(x, y, i):
+def posterior(x, y, s):
 
     #Get the probability that it is spam
-    numerator = 1
+    numerator = prior(y)
+
     #Go through each feature and calculate likelihood, multiplying it
     for j in range(57):
-        v = x[i][j]
+        v = s[j]
         numerator *= likelihood(x, y, j, v, 1)
 
     #Get the probability that it is not spam
-    denominator = 1
+    denominator = 1 - prior(y)
+
     #Go through each feature and calculate likelihood, multiplying it
     for j in range(57):
-        v = x[i][j]
-        denominator *= likelihood(x, y, v, 0)
+        v = s[j]
+        denominator *= likelihood(x, y, j, v, 0)
 
     return numerator / denominator
 
+def test(trainingX, trainingY, testingX, testingY):
+
+    #Track spam statistics
+    TP = 0
+    TN = 0
+    FP = 0
+    FN = 0
+
+    #Go through each sample
+    for i in range(len(testingX)):
+        predict = posterior(trainingX, trainingY, testingX[i])
+
+        #If the prediction is >= it is spam
+        if(predict >= 1):
+
+            #If the sample is spam, guessed correctly (TP)
+            if(testingY[i] == 1):
+                TP += 1
+            #If the sample is not spam, guessed wrong (FP)
+            else:
+                FP += 1
+        #If the prediction is < 1 it is not spam
+        else:
+
+            #If the sample is spam, guessed incorrectly (FN)
+            if(testingY[i] == 1):
+                FN += 1
+            #If the sample is not spam, guessed correctly (TN)
+            else:
+                TN += 1
+
+    print("TP:", TP)
+    print("TN:", TN)
+    print("FP:", FP)
+    print("FN:", FN)
+    print("Accuracy", (TN + TP) / (TN + TP + FP + FN))
 
 def main():
 
@@ -218,5 +257,10 @@ def main():
     trainingY = y[:cutoff]
     testingX = x[cutoff:]
     testingY = y[cutoff:]
+
+    #IMPLEMENT TRAIN FUNCTION HERE THAT PRECALCULATES THE LIKELIHOOD FOR EACH FEATURE/VALUE COMBINATION
+
+
+    test(trainingX, trainingY, testingX, testingY)
 
 main()
