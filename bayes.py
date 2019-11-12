@@ -2,6 +2,8 @@ import numpy as np
 import random
 
 
+priorMemo = 0
+
 def readFile():
     #import data
     file = "spambase.data"
@@ -15,8 +17,7 @@ def readFile():
     for i in range(len(data)):
         #Split features
         data[i] = data[i].split(",")
-        if i < 5:
-            print("Num features:", len(data[i]))
+
         #Cast each feature
         for j in range(57):
             data[i][j] = float(data[i][j])
@@ -24,20 +25,17 @@ def readFile():
         #Read in class label as it, since it's 1/0
         data[i][57] = int(data[i][57])
 
-    for i in range(10):
-        print(data[i])
-
     data = np.array(data)
 
     #Bucket data:
     bucket(2, data)
 
     #Shuffle data:
-    random.shuffle(data)
+    np.random.shuffle(data)
 
+    #Split X and Y
     x = data[:,:57]
     y = data[:,57]
-    print(y[0:20])
     return [x, y]
 
 
@@ -87,6 +85,7 @@ def bucket(buckets, data):
     Returns:
         Probability of any sample being spam (the prior)
 """
+
 def prior(Y):
 
     spam = 0
@@ -97,7 +96,9 @@ def prior(Y):
 
     print("Num spam:", spam)
 
-    return spam / len(Y)
+    prior = spam / len(Y)
+
+    return prior
 
 """
     Likelihood is the probability P(xj | spam/not-spam)
