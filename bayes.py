@@ -27,8 +27,8 @@ def readFile():
 
     data = np.array(data)
 
-    #Bucket data:
-    bucket(2, data)
+    #Bucket data (REPLACE WITH YOUR IDEAS):
+    bucket_closerMean(data)
 
     #Shuffle data:
     np.random.shuffle(data)
@@ -75,6 +75,43 @@ def bucket(buckets, data):
             lower = upper
 
 """
+    Bucketing method that classify a feature into 1/0 depend which mean it is closer to
+
+    Param:
+        data: the entire set of data before it has been split into X and Y
+
+    Process;
+        1. 1 pass on each feature for all sample sum their value respect to spam or non-spam
+        2. calculate mean and store that info
+"""
+def bucket_closerMean(data):
+
+    # Go through each feature (i,j) = (feature, sample)
+    # date[sample, feature] = data[j, i]
+    for i in range(57):
+
+        sum_spam = 0
+        sum_nonSpam = 0
+
+        mean_spam = []
+        mean_nonSpam = []
+
+        for j in range(len(data)):
+            if data[j][57] == 1:
+                sum_spam += data[j][i]
+            else:
+                sum_nonSpam += data[j][i]
+
+        mean_spam = sum_spam / 1813
+        mean_nonSpam = sum_nonSpam / 2788
+
+        for j in range(len(data)):
+            if abs(data[j][i] - mean_spam) > abs(data[j][i] - mean_nonSpam):
+                data[j][i] = 0
+            else:
+                data[j][i] = 1
+
+"""
     Prior is defined as the probability of any sample being in the class.
     We can calculate this by just counting up the number of samples that are spam.
     P(not spam) = (1 - P(spam))
@@ -112,26 +149,67 @@ def prior(Y):
     Returns:
         P(xj | spam/not-spam)
 """
-def likelihood(X, Y, j, v, c):
 
-    #Count of occurences of that value
-    count = 0
+def likelihood():
 
-    #Total count of that class
-    total = 0
+    memory = np.zeros(shape=(2, 57), dtype="object")
+    print(memory)
 
-    #Iterate through each sample
-    for i in range(len(X)):
+    def inner(X, Y, j, v, c):
 
-        #If the classes are the same update total number of that class
-        if Y[i] == c :
-            total +=1
+        #Memory is formatted as:
+        #memory[class][feature] stores an array [[value, probability], [value, probabliity]] pairs.
 
-            #If the values match update our count of value
-            if(X[i][j] == v):
-                count += 1
+        #No values stored for that class and feature pair
+        if(memory[c][j] == 0):
+            memory[c][j] = []
 
-    return count / total
+        index = 0
+
+        #See if value is in the memo
+        for i in range(len(memory[c][j])):
+            if(memory[c][j][i][0] == v):
+                index = i
+                break
+
+        #No pairs stored or no matching pair was found
+        #we need to calculate likelihood and store
+        if(len(memory[c][j]) == 0 or memory[c][j][index][0] != v):
+
+            #Count of occurences of that value
+            count = 0
+
+            #Total count of that class
+            total = 0
+
+            #Iterate through each sample
+            for i in range(len(X)):
+
+                #If the classes are the same update total number of that class
+                if Y[i] == c :
+                    total +=1
+
+                    #If the values match update our count of value
+                    if(X[i][j] == v):
+                        count += 1
+
+            likelihood = count / total
+
+            memory[c][j].append([v, likelihood])
+
+            return likelihood
+
+        else:
+            #print("Memory hit for (c,j,v): (",c,j,v,")")
+            zzz = 2
+
+
+        #Otherwise return the stored value
+        return memory[c][j][index][1]
+
+    return inner
+
+
 
 """
     Posterior is the probability P(Spam | x). We calculate this with Bayes theroem. And by doing a trick of P(Spam | X) / P(!Spam | X) and seeing if it is >= 1.
@@ -142,7 +220,7 @@ def likelihood(X, Y, j, v, c):
         s: the sample we are looking at
         prior: the prior probabliity of a sample being spam
 """
-def posterior(X, Y, s, prior):
+def posterior(X, Y, s, prior, likelihood_func):
 
     #Get the probability that it is spam
     numerator = prior
@@ -150,7 +228,7 @@ def posterior(X, Y, s, prior):
     #Go through each feature and calculate likelihood, multiplying it
     for j in range(57):
         v = s[j]
-        numerator *= likelihood(X, Y, j, v, 1)
+        numerator *= likelihood_func(X, Y, j, v, 1)
 
     #Get the probability that it is not spam
     denominator = 1 - prior
@@ -158,7 +236,7 @@ def posterior(X, Y, s, prior):
     #Go through each feature and calculate likelihood, multiplying it
     for j in range(57):
         v = s[j]
-        denominator *= likelihood(X, Y, j, v, 0)
+        denominator *= likelihood_func(X, Y, j, v, 0)
 
     #Fix divide by zero by adding 1 to top and bottom. Still maintains ratio.
     return ( 1 + numerator) / (1 + denominator)
@@ -173,11 +251,13 @@ def test(trainingX, trainingY, testingX, testingY):
 
     p = prior(trainingY)
 
+    likelihood_func = likelihood()
+
     print("Calculated prior:", p)
 
     #Go through each sample
     for i in range(len(testingX)):
-        predict = posterior(trainingX, trainingY, testingX[i], p)
+        predict = posterior(trainingX, trainingY, testingX[i], p, likelihood_func)
 
         #If the prediction is >= it is spam
         if(predict >= 1):
@@ -213,7 +293,7 @@ def main():
     print("Finished preprocessing.")
 
     #Portion of samples to be used for training:
-    split = .99
+    split = .66
     cutoff = int(split * len(x))
 
     #Split training and Testing sets
@@ -221,8 +301,6 @@ def main():
     trainingY = y[:cutoff]
     testingX = x[cutoff:]
     testingY = y[cutoff:]
-
-    print("Prior of training data:", prior(trainingY))
 
     #IMPLEMENT TRAIN FUNCTION HERE THAT PRECALCULATES THE LIKELIHOOD FOR EACH FEATURE/VALUE COMBINATION
 
