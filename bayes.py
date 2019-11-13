@@ -27,8 +27,8 @@ def readFile():
 
     data = np.array(data)
 
-    #Bucket data (REPLACE WITH YOUR IDEAS):
-    bucket_closerMean(data)
+    #Bucket using simple quantiles
+    #bucket(2, data)
 
     #Shuffle data:
     np.random.shuffle(data)
@@ -75,41 +75,67 @@ def bucket(buckets, data):
             lower = upper
 
 """
-    Bucketing method that classify a feature into 1/0 depend which mean it is closer to
+    Bucketing method that classify a feature into 1/0 depend which mean it is closer to.
+    Isolated calculating the averages to only the training set.
+    This we are not using the testing set to label certain values as correlated to spam or not.
+    This can be thought of using K-means for k=2 on each feature separately.
+    We calculate the center of that feature for each class, and label which class the sample belongs to for that feature.
 
     Param:
-        data: the entire set of data before it has been split into X and Y
+        trainingX: Our set of samples for training
+        trainingY: Our set of labels for training
+        testingX: Our set of samples to be used for verifying
+        testingY: Our set of labels to be use for verifying
 
     Process;
-        1. 1 pass on each feature for all sample sum their value respect to spam or non-spam
-        2. calculate mean and store that info
+        1. Pass through each feature calculating the spam/not-spam means
+        2. Replace value of the feature for its class label
 """
-def bucket_closerMean(data):
+def bucket_closerMean(trainingX, trainingY, testingX, testingY):
 
     # Go through each feature (i,j) = (feature, sample)
     # date[sample, feature] = data[j, i]
     for i in range(57):
 
+        #Count number of spam/not-spam samples
+        count_spam = 0
+        count_notSpam = 0
+
+        #Store summed value of each feature
         sum_spam = 0
         sum_nonSpam = 0
 
-        mean_spam = []
-        mean_nonSpam = []
+        #Store mean of each feature (center of cluster)
+        mean_spam = 0
+        mean_nonSpam = 0
 
-        for j in range(len(data)):
-            if data[j][57] == 1:
-                sum_spam += data[j][i]
+        #Sum up the value of the feature, counting labels for spam/not-spam
+        #Looks only at the training set so it doesn't make assumptions on the testing set
+        for j in range(len(trainingX)):
+            if trainingY[j] == 1:
+                count_spam += 1
+                sum_spam += trainingX[j][i]
             else:
-                sum_nonSpam += data[j][i]
+                count_notSpam += 1
+                sum_nonSpam += trainingX[j][i]
 
-        mean_spam = sum_spam / 1813
-        mean_nonSpam = sum_nonSpam / 2788
+        #Calculate the mean
+        mean_spam = sum_spam / count_spam
+        mean_nonSpam = sum_nonSpam / count_notSpam
 
-        for j in range(len(data)):
-            if abs(data[j][i] - mean_spam) > abs(data[j][i] - mean_nonSpam):
-                data[j][i] = 0
+        #Reassign values for the training set
+        for j in range(len(trainingX)):
+            if abs(trainingX[j][i] - mean_spam) > abs(trainingX[j][i] - mean_nonSpam):
+                trainingX[j][i] = 0
             else:
-                data[j][i] = 1
+                trainingX[j][i] = 1
+
+        #Reassign values for the testing set using the training set
+        for j in range(len(testingX)):
+            if abs(testingX[j][i] - mean_spam) > abs(testingX[j][i] - mean_nonSpam):
+                testingX[j][i] = 0
+            else:
+                testingX[j][i] = 1
 
 """
     Prior is defined as the probability of any sample being in the class.
@@ -149,7 +175,6 @@ def prior(Y):
     Returns:
         P(xj | spam/not-spam)
 """
-
 def likelihood():
 
     memory = np.zeros(shape=(2, 57), dtype="object")
@@ -208,8 +233,6 @@ def likelihood():
         return memory[c][j][index][1]
 
     return inner
-
-
 
 """
     Posterior is the probability P(Spam | x). We calculate this with Bayes theroem. And by doing a trick of P(Spam | X) / P(!Spam | X) and seeing if it is >= 1.
@@ -302,8 +325,8 @@ def main():
     testingX = x[cutoff:]
     testingY = y[cutoff:]
 
-    #IMPLEMENT TRAIN FUNCTION HERE THAT PRECALCULATES THE LIKELIHOOD FOR EACH FEATURE/VALUE COMBINATION
-
+    #Using Ethan's method transform the testing data based on the training data only.
+    bucket_closerMean(trainingX, trainingY, testingX, testingY)
 
     test(trainingX, trainingY, testingX, testingY)
 
