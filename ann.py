@@ -72,6 +72,8 @@ names = [
         "spamClassification"
         ]
 data = pd.read_csv(file, delimiter=",", names=names)
+#shuffle data
+data = data.sample(frac=1).reset_index(drop=True)
 
 x = data.iloc[:,data.columns != "spamClassification"]
 y = data.loc[:,"spamClassification"]
@@ -99,7 +101,7 @@ for layers in range(1,maxLayers+1):
 
         earlyStop = keras.callbacks.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=100, mode='min', baseline=None, restore_best_weights=False)
 
-        sgd = optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=False)
+        sgd = optimizers.SGD(lr=1, decay=1e-6, momentum=0.9, nesterov=False)
         ann.compile(loss="mean_squared_error",
                     optimizer=sgd,
                     metrics=["binary_accuracy"])
