@@ -1,7 +1,7 @@
 import nltk
 import math
 
-def load_data(model, class1_tokens, class2_tokens, test):
+def load_data(model, class1_tokens, class2_tokens, test) -> None:
 	file = open('SMSSpamCollection', 'r', encoding='utf_8')
 	model['class1_count'], model['class2_count'] = 0,0
 
@@ -20,7 +20,7 @@ def load_data(model, class1_tokens, class2_tokens, test):
 	model['class1_fd'] = nltk.FreqDist(class1_tokens)
 	model['class2_fd'] = nltk.FreqDist(class2_tokens)
 
-def classify(model, test):
+def classify(model, test) -> None:
 	class1_tokens, class2_tokens = model['class1_fd'], model['class2_fd']
 
 	prior_class1 = return_prior(model, 'class1_count')
@@ -35,6 +35,7 @@ def classify(model, test):
 	for index, line in enumerate(test):
 		tokens = nltk.word_tokenize(line[1])
 		total_class1_p, total_class2_p = prior_class1, prior_class2
+		#process all tokens in each sample, and use additive smoothing
 		for t in tokens:
 			p = math.log((model['class1_fd'][t] + 1)/ \
 				(class1_tokens.N() + class1_tokens.B()))
@@ -52,7 +53,7 @@ def classify(model, test):
 	print((len([n[0] for n in test]) - miss_count)/len([n[0] for n in test]))
 
 
-def return_prior(model, class_name):
+def return_prior(model, class_name) -> float:
 	return math.log(model[class_name]/ \
 		(model['class1_count'] + model['class2_count']))
 
