@@ -116,7 +116,26 @@ for layers in range(1,maxLayers+1):
                         callbacks=[earlyStop])
         trainingAccuracy[layers-1][nodes] = info.history['binary_accuracy'][len(info.history)-1]
         testingAccuracy[layers-1][nodes] = info.history['val_binary_accuracy'][len(info.history)-1]
-
+        prediction = ann.predict(x)
+        TP = 0
+        FP = 0
+        TN = 0
+        FN = 0
+        for i in range(len(prediction)):
+            if(prediction[i]<.5):
+                if(y[i]==0):
+                    TN +=1
+                else:
+                    FN +=1
+            else:
+                if(y[i]==1):
+                    TP +=1
+                else:
+                    FP +=1
+        print("TN: %s" % TN)
+        print("FN: %s" % FN)
+        print("TP: %s" % TP)
+        print("TP: %s" % FP)
 
 
 
