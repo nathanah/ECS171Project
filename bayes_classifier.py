@@ -1,5 +1,8 @@
-def load_data(model, class1_tokens, class2_tokens, test_data):
-	file = open('SMSSpamCollection', 'r')
+import nltk
+
+def load_data(model, class1_tokens, class2_tokens, test):
+	file = open('SMSSpamCollection', 'r', encoding='utf_8')
+	model['class1_count'], model['class2_count'] = 0,0
 	for index, line in enumerate(file):
 		l = line.split("\t")
 		if index >= 4000:
@@ -18,7 +21,5 @@ def load_data(model, class1_tokens, class2_tokens, test_data):
 if __name__ == '__main__':
 	model = {}
 	class1_tokens, class2_tokens = [], []
-	test_data = []
-	load_data(model, class1_tokens, class2_tokens, test_data)
-
-	print(model)
+	test = []
+	load_data(model, class1_tokens, class2_tokens, test)
