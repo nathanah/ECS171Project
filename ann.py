@@ -7,6 +7,7 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.utils import np_utils
 from keras import optimizers
+from sklearn.preprocessing import MinMaxScaler
 
 
 #import data
@@ -75,6 +76,10 @@ data = pd.read_csv(file, delimiter=",", names=names)
 #shuffle data
 data = data.sample(frac=1).reset_index(drop=True)
 
+
+scaler = MinMaxScaler()
+scaler.fit(data)
+data.iloc[:] = scaler.transform(data)
 x = data.iloc[:,data.columns != "spamClassification"]
 y = data.loc[:,"spamClassification"]
 
@@ -83,7 +88,7 @@ y = data.loc[:,"spamClassification"]
 
 #grid search
 maxLayers = 3
-gridNodes = [3,6,10,15,30]
+gridNodes = [3,6,10,15,30,50,100]
 trainingAccuracy = np.zeros((maxLayers,len(gridNodes)))
 testingAccuracy = np.zeros((maxLayers,len(gridNodes)))
 
@@ -101,7 +106,7 @@ for layers in range(1,maxLayers+1):
 
         earlyStop = keras.callbacks.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=100, mode='min', baseline=None, restore_best_weights=False)
 
-        sgd = optimizers.SGD(lr=1, decay=1e-6, momentum=0.9, nesterov=False)
+        sgd = optimizers.SGD(lr=.005, decay=1e-6, momentum=0.9, nesterov=False)
         ann.compile(loss="mean_squared_error",
                     optimizer=sgd,
                     metrics=["binary_accuracy"])
