@@ -135,7 +135,7 @@ for layers in range(1,maxLayers+1):
         print("TN: %s" % TN)
         print("FN: %s" % FN)
         print("TP: %s" % TP)
-        print("TP: %s" % FP)
+        print("FP: %s" % FP)
 
 
 
