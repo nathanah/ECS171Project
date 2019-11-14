@@ -119,8 +119,8 @@ for layers in range(1,maxLayers+1):
                         batch_size=32,
                         verbose=0,
                         callbacks=[earlyStop])
-        trainingAccuracy[layers-1][nodes] = info.history['binary_accuracy'][len(info.history)-1]
-        testingAccuracy[layers-1][nodes] = info.history['val_binary_accuracy'][len(info.history)-1]
+        trainingAccuracy[layers-1][nodes] = info.history['binary_accuracy'][len(info.history['val_binary_accuracy'])-1]
+        testingAccuracy[layers-1][nodes] = info.history['val_binary_accuracy'][len(info.history['val_binary_accuracy'])-1]
         prediction = ann.predict(x)
         TP = 0
         FP = 0
