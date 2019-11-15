@@ -1,6 +1,6 @@
 import numpy as np
 import random
-
+import copy
 
 priorMemo = 0
 
@@ -27,9 +27,6 @@ def readFile():
 
     data = np.array(data)
 
-    #Bucket using simple quantiles
-    #bucket(2, data)
-
     #Shuffle data:
     np.random.shuffle(data)
 
@@ -45,34 +42,40 @@ def readFile():
 
     Params:
         buckets: the number of buckets we are dividing the data into (quantiles)
-        data: the entire set of data before it has been split into X and Y
+        X: set of samples to be bucketed
+        Y: set of labels for the samples
 
     Side-effect:
         data is transformed and no longer the same as before it was passed in
 """
-def bucket(buckets, data):
+def bucket(buckets, X, Y):
 
     #Go through each column except for the label
-    for i in range(57):
+    for j in range(57):
 
         #Sort the data on the given column
-        data = data[np.argsort(data[:, i])]
+        indices = np.argsort(X[:, j])
+        X = X[indices]
+        Y = Y[indices]
 
         #Variable to store the lower bound of the current quantile
         lower = 0
 
         #Go through each quantile labeling it with the proper bucket
-        for j in range(buckets):
+        for b in range(buckets):
 
             #Get the upper cutoff of the current quantile.
-            upper = (j+1) * (len(data) / buckets)
+            upper = (b+1) * (len(X) / buckets)
             upper = int(upper)
 
             #Label all samples in range with current bucket
-            data[lower:upper, i] = j
+            for i in range(lower, upper):
+                X[i][j] = b
 
             #Upper cutoff becomes lower bound.
             lower = upper
+
+    return [X, Y]
 
 """
     Bucketing method that classify a feature into 1/0 depend which mean it is closer to.
@@ -242,11 +245,12 @@ def likelihood():
         y: our set of all labels Y to train from
         s: the sample we are looking at
         prior: the prior probabliity of a sample being spam
+        likelihood_func: the memoized function for calculating likelihood
 """
 def posterior(X, Y, s, prior, likelihood_func):
 
-    #Get the probability that it is spam
-    numerator = prior
+    #Get the probability that it is spam. Multiply by a large number to avoid precision problems
+    numerator = (prior) * 1000000000
 
     #Go through each feature and calculate likelihood, multiplying it
     for j in range(57):
@@ -254,7 +258,7 @@ def posterior(X, Y, s, prior, likelihood_func):
         numerator *= likelihood_func(X, Y, j, v, 1)
 
     #Get the probability that it is not spam
-    denominator = 1 - prior
+    denominator = (1 - prior) * 1000000000
 
     #Go through each feature and calculate likelihood, multiplying it
     for j in range(57):
@@ -262,6 +266,8 @@ def posterior(X, Y, s, prior, likelihood_func):
         denominator *= likelihood_func(X, Y, j, v, 0)
 
     #Fix divide by zero by adding 1 to top and bottom. Still maintains ratio.
+    print("Numerator:", 1 + numerator)
+    print("Denominator:", 1+ denominator)
     return ( 1 + numerator) / (1 + denominator)
 
 def test(trainingX, trainingY, testingX, testingY):
@@ -281,7 +287,7 @@ def test(trainingX, trainingY, testingX, testingY):
     #Go through each sample
     for i in range(len(testingX)):
         predict = posterior(trainingX, trainingY, testingX[i], p, likelihood_func)
-
+        print("Prediction:", predict)
         #If the prediction is >= it is spam
         if(predict >= 1):
 
@@ -316,7 +322,7 @@ def main():
     print("Finished preprocessing.")
 
     #Portion of samples to be used for training:
-    split = .66
+    split = .9
     cutoff = int(split * len(x))
 
     #Split training and Testing sets
@@ -325,8 +331,16 @@ def main():
     testingX = x[cutoff:]
     testingY = y[cutoff:]
 
+    #Using a simple bucket method, bucket training and testing data
+    bucketed = bucket(2, trainingX, trainingY)
+    trainingX = bucketed[0]
+    trainingY = bucketed[1]
+    bucketed = bucket(2, testingX, testingY)
+    testingX = bucketed[0]
+    testingY = bucketed[1]
+
     #Using Ethan's method transform the testing data based on the training data only.
-    bucket_closerMean(trainingX, trainingY, testingX, testingY)
+    #bucket_closerMean(trainingX, trainingY, testingX, testingY)
 
     test(trainingX, trainingY, testingX, testingY)
 
