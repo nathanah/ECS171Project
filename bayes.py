@@ -227,10 +227,6 @@ def likelihood():
 
             return likelihood
 
-        else:
-            #print("Memory hit for (c,j,v): (",c,j,v,")")
-            zzz = 2
-
 
         #Otherwise return the stored value
         return memory[c][j][index][1]
@@ -250,7 +246,7 @@ def likelihood():
 def posterior(X, Y, s, prior, likelihood_func):
 
     #Get the probability that it is spam. Multiply by a large number to avoid precision problems
-    numerator = (prior) * 1000000000
+    numerator = (prior)
 
     #Go through each feature and calculate likelihood, multiplying it
     for j in range(57):
@@ -258,7 +254,7 @@ def posterior(X, Y, s, prior, likelihood_func):
         numerator *= likelihood_func(X, Y, j, v, 1)
 
     #Get the probability that it is not spam
-    denominator = (1 - prior) * 1000000000
+    denominator = (1 - prior)
 
     #Go through each feature and calculate likelihood, multiplying it
     for j in range(57):
@@ -266,9 +262,17 @@ def posterior(X, Y, s, prior, likelihood_func):
         denominator *= likelihood_func(X, Y, j, v, 0)
 
     #Fix divide by zero by adding 1 to top and bottom. Still maintains ratio.
-    print("Numerator:", 1 + numerator)
-    print("Denominator:", 1+ denominator)
-    return ( 1 + numerator) / (1 + denominator)
+    print("Numerator:", numerator)
+    print("Denominator:", denominator)
+
+    #Fix divide by 0 error
+    if(denominator == 0):
+        if(numerator > 0):
+            return 1
+        else:
+            return 0
+
+    return (numerator) / (denominator)
 
 def test(trainingX, trainingY, testingX, testingY):
 
@@ -332,15 +336,15 @@ def main():
     testingY = y[cutoff:]
 
     #Using a simple bucket method, bucket training and testing data
-    bucketed = bucket(2, trainingX, trainingY)
-    trainingX = bucketed[0]
-    trainingY = bucketed[1]
-    bucketed = bucket(2, testingX, testingY)
-    testingX = bucketed[0]
-    testingY = bucketed[1]
+    # bucketed = bucket(20, trainingX, trainingY)
+    # trainingX = bucketed[0]
+    # trainingY = bucketed[1]
+    # bucketed = bucket(20, testingX, testingY)
+    # testingX = bucketed[0]
+    # testingY = bucketed[1]
 
     #Using Ethan's method transform the testing data based on the training data only.
-    #bucket_closerMean(trainingX, trainingY, testingX, testingY)
+    bucket_closerMean(trainingX, trainingY, testingX, testingY)
 
     test(trainingX, trainingY, testingX, testingY)
 
