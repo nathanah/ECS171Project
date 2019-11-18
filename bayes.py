@@ -339,6 +339,10 @@ def test(trainingX, trainingY, testingX, testingY):
     Params:
         data: Array containing our X and Y matrices.
         folds: The number of folds to split our data on.
+        method: integer to represent what bucketing method we are using:
+            <=0: No bucketing method (use raw data after outlier detection)
+            1: Using mean bucketing method
+            >= 2: The number of buckets specified for simple quantile bucketing
 
     Returns:
         An array of testing results in the form:
@@ -350,7 +354,7 @@ def test(trainingX, trainingY, testingX, testingY):
             accuracies[k][4]: spam classification testing accuracy
 
 """
-def kFold(data, folds):
+def kFold(data, folds, method):
 
     #Lower bound of our testing set
     lower = 0
@@ -372,16 +376,20 @@ def kFold(data, folds):
         trainingX = np.concatenate([X[:lower], X[upper:]])
         trainingY = np.concatenate([Y[:lower], Y[upper:]])
 
+        if(method == 1):
+            bucket_closerMean(trainingX, trainingY, testingX, testingY)
+        if(method >= 2):
+            bucketed = bucket(20, trainingX, trainingY)
+            trainingX = bucketed[0]
+            trainingY = bucketed[1]
+            bucketed = bucket(20, testingX, testingY)
+            testingX = bucketed[0]
+            testingY = bucketed[1]
+
         #Using a simple bucket method, bucket training and testing data
-        # bucketed = bucket(20, trainingX, trainingY)
-        # trainingX = bucketed[0]
-        # trainingY = bucketed[1]
-        # bucketed = bucket(20, testingX, testingY)
-        # testingX = bucketed[0]
-        # testingY = bucketed[1]
+
 
         #Using Ethan's method transform the testing data based on the training data only.
-        bucket_closerMean(trainingX, trainingY, testingX, testingY)
 
         accuracies.append(test(trainingX, trainingY, testingX, testingY))
 
@@ -395,6 +403,7 @@ def main():
     data = readFile()
     print("Finished preprocessing.")
 
-    kFold(data, 10)
+    #Look at the method description above k-fold for usage
+    kFold(data, 10, 1)
 
 main()
