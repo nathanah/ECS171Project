@@ -4,9 +4,7 @@ import copy
 
 priorMemo = 0
 
-def readFile():
-    #import data
-    file = "spambase.data"
+def readFile(file):
 
     file = open(file, 'r')
     data = file.read()
@@ -399,11 +397,12 @@ def kFold(data, folds, method):
 
 def main():
 
-    #Read in data and preprocess it
-    data = readFile()
+    #Read in data and preprocess it. Replace the parameter with whatever path
+    data = readFile("spambase.data")
     print("Finished preprocessing.")
 
     #Look at the method description above k-fold for usage
-    kFold(data, 10, 1)
+    #Use statistics to get information about the testing for each fold
+    statistics = kFold(data, 10, 1)
 
 main()
