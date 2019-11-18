@@ -181,7 +181,6 @@ def prior(Y):
 def likelihood():
 
     memory = np.zeros(shape=(2, 57), dtype="object")
-    print(memory)
 
     def inner(X, Y, j, v, c):
 
@@ -261,10 +260,6 @@ def posterior(X, Y, s, prior, likelihood_func):
         v = s[j]
         denominator *= likelihood_func(X, Y, j, v, 0)
 
-    #Fix divide by zero by adding 1 to top and bottom. Still maintains ratio.
-    print("Numerator:", numerator)
-    print("Denominator:", denominator)
-
     #Fix divide by 0 error
     if(denominator == 0):
         if(numerator > 0):
@@ -274,6 +269,23 @@ def posterior(X, Y, s, prior, likelihood_func):
 
     return (numerator) / (denominator)
 
+"""
+    Runs a test of the model by training it using the training set, and testing it with the testing set.
+
+    params:
+        trainingX: the training set of samples
+        trainingY: the labels associated with the training samples
+        testingX: the testing set of samples
+        testingY: the labels associiated with the testing samples
+
+    returns:
+        Array with the format:
+        dat[0]: the number of testing samples classified TP
+        dat[1]: the number of testing samples classified TN
+        dat[2]: the number of testing samples classified FP
+        dat[3]: the number of testing samples classified FN
+        dat[4]: testing spam classification accuracy
+"""
 def test(trainingX, trainingY, testingX, testingY):
 
     #Track spam statistics
@@ -291,7 +303,6 @@ def test(trainingX, trainingY, testingX, testingY):
     #Go through each sample
     for i in range(len(testingX)):
         predict = posterior(trainingX, trainingY, testingX[i], p, likelihood_func)
-        print("Prediction:", predict)
         #If the prediction is >= it is spam
         if(predict >= 1):
 
@@ -311,41 +322,79 @@ def test(trainingX, trainingY, testingX, testingY):
             else:
                 TN += 1
 
+    accuracy = (TN + TP) / (TN + TP + FP + FN)
+    dat = [TP, TN, FP, FN, accuracy]
+
     print("TP:", TP)
     print("TN:", TN)
     print("FP:", FP)
     print("FN:", FN)
-    print("Accuracy", (TN + TP) / (TN + TP + FP + FN))
+    print("Accuracy", accuracy)
+    return(dat)
+
+
+"""
+    Runs k-fold cross validation. Holds 1 fold as the the testing set, all rest are used for training.
+
+    Params:
+        data: Array containing our X and Y matrices.
+        folds: The number of folds to split our data on.
+
+    Returns:
+        An array of testing results in the form:
+        accuracies[k]: an array containing testing information for the kth fold
+            accuracies[k][0]: the number of testing samples classified TP
+            accuracies[k][1]: the number of testing samples classified TN
+            accuracies[k][2]: the number of testing samples classified FP
+            accuracies[k][3]: the number of testing samples classified TN
+            accuracies[k][4]: spam classification testing accuracy
+
+"""
+def kFold(data, folds):
+
+    #Lower bound of our testing set
+    lower = 0
+
+    accuracies = []
+
+    for k in range(folds):
+
+        #Copy our set so the original data isn't modified for other trainings
+        X = copy.deepcopy(data[0])
+        Y = copy.deepcopy(data[1])
+
+        upper = int((k + 1) * (len(X)/folds))
+
+        #Split training and Testing sets
+        testingX = X[lower:upper]
+        testingY = Y[lower:upper]
+        #Get everything not in our current segment as the training set
+        trainingX = np.concatenate([X[:lower], X[upper:]])
+        trainingY = np.concatenate([Y[:lower], Y[upper:]])
+
+        #Using a simple bucket method, bucket training and testing data
+        # bucketed = bucket(20, trainingX, trainingY)
+        # trainingX = bucketed[0]
+        # trainingY = bucketed[1]
+        # bucketed = bucket(20, testingX, testingY)
+        # testingX = bucketed[0]
+        # testingY = bucketed[1]
+
+        #Using Ethan's method transform the testing data based on the training data only.
+        bucket_closerMean(trainingX, trainingY, testingX, testingY)
+
+        accuracies.append(test(trainingX, trainingY, testingX, testingY))
+
+        lower = upper
+
+    return accuracies
 
 def main():
 
     #Read in data and preprocess it
     data = readFile()
-    x = data[0]
-    y = data[1]
     print("Finished preprocessing.")
 
-    #Portion of samples to be used for training:
-    split = .9
-    cutoff = int(split * len(x))
-
-    #Split training and Testing sets
-    trainingX = x[:cutoff]
-    trainingY = y[:cutoff]
-    testingX = x[cutoff:]
-    testingY = y[cutoff:]
-
-    #Using a simple bucket method, bucket training and testing data
-    # bucketed = bucket(20, trainingX, trainingY)
-    # trainingX = bucketed[0]
-    # trainingY = bucketed[1]
-    # bucketed = bucket(20, testingX, testingY)
-    # testingX = bucketed[0]
-    # testingY = bucketed[1]
-
-    #Using Ethan's method transform the testing data based on the training data only.
-    bucket_closerMean(trainingX, trainingY, testingX, testingY)
-
-    test(trainingX, trainingY, testingX, testingY)
+    kFold(data, 10)
 
 main()
