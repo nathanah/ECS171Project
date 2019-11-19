@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import copy
+import math
 
 priorMemo = 0
 
@@ -24,6 +25,20 @@ def readFile(file):
         data[i][57] = int(data[i][57])
 
     data = np.array(data)
+
+    #min-max norm
+    for j in range(57):
+        min = data[0][j]
+        max = data[0][j]
+        for i in range(len(data)):
+            if(data[i][j] < min):
+                min = data[i][j]
+
+            if(data[i][j] > max):
+                max = data[i][j]
+
+        for i in range(len(data)):
+            data[i][j] = (data[i][j] - min) / (max - min)
 
     #Shuffle data:
     np.random.shuffle(data)
@@ -231,6 +246,59 @@ def likelihood():
     return inner
 
 """
+    Likelihood is the probability P(xj | spam/not-spam)
+    We can calculate this by assuming a gaussian distribution and using the likelihood function for that
+
+    Params:
+        x: our set of all samples X
+        y: our set of all labels Y
+        j: the column we are looking at
+        v: the value we are looking for in the column
+        c: what class we are looking at
+
+    Returns:
+        P(xj | spam/not-spam)
+"""
+def gauss_likelihood():
+
+    memory = np.zeros(shape=(2, 57), dtype="object")
+
+    def inner(X, Y, j, v, c):
+
+        #Memory is formatted as:
+        #memory[class][feature] stores a [sigma, mu] pair.
+
+        #No values stored for that class and feature pair
+        if(memory[c][j] == 0):
+            memory[c][j] = []
+
+            numC = 0
+
+            total = 0
+
+            #Calculate mean
+            for i in range(len(X)):
+                if(Y[i] == c):
+                    numC += 1
+                    total += X[i][j]
+
+            mu = total / numC
+
+            total = 0
+
+            for i in range(len(X)):
+                if(Y[i] == c):
+                    total += (X[i][j] - mu)**2
+
+            sigma = (total / (numC - 1))**(1/2)
+
+            memory[c][j] =  [sigma, mu]
+
+        return (1/((2*math.pi)*memory[c][j][0])) * math.exp(-((v - memory[c][j][1])**2) / (2 * (memory[c][j][0] ** 2)))
+
+    return inner
+
+"""
     Posterior is the probability P(Spam | x). We calculate this with Bayes theroem. And by doing a trick of P(Spam | X) / P(!Spam | X) and seeing if it is >= 1.
 
     Params:
@@ -330,7 +398,6 @@ def test(trainingX, trainingY, testingX, testingY):
     print("Accuracy", accuracy)
     return(dat)
 
-
 """
     Runs k-fold cross validation. Holds 1 fold as the the testing set, all rest are used for training.
 
@@ -377,10 +444,10 @@ def kFold(data, folds, method):
         if(method == 1):
             bucket_closerMean(trainingX, trainingY, testingX, testingY)
         if(method >= 2):
-            bucketed = bucket(20, trainingX, trainingY)
+            bucketed = bucket(method, trainingX, trainingY)
             trainingX = bucketed[0]
             trainingY = bucketed[1]
-            bucketed = bucket(20, testingX, testingY)
+            bucketed = bucket(method, testingX, testingY)
             testingX = bucketed[0]
             testingY = bucketed[1]
 
@@ -403,6 +470,6 @@ def main():
 
     #Look at the method description above k-fold for usage
     #Use statistics to get information about the testing for each fold
-    statistics = kFold(data, 10, 1)
+    statistics = kFold(data, 10, 10)
 
 main()
