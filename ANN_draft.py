@@ -8,6 +8,97 @@ from keras import callbacks
 from keras import optimizers
 from sklearn.preprocessing import MinMaxScaler
 
+from matplotlib import axes
+from matplotlib import pyplot as plot
+from sklearn.metrics import roc_curve
+from sklearn.metrics import precision_recall_curve
+
+
+def error_plot(training_x, training_y, testing_x, testing_y, model, numEpochs = 1000):
+    # Error_plot input
+    # training data
+    # testing data
+    # a model that has been compiled (does not need to be fitted)
+    # number of epochs (default 1000)
+    # Plots the misclassification rate at the end of each epoch
+
+    val_data = [testing_x, testing_y]
+    
+    #callback to collect testing and training accuracy at end of each epoch
+    class accuracyHistory(callbacks.Callback):
+        def on_train_begin(self, logs={}):
+            self.accuracies = []
+            self.val_accuracies = []
+        def on_epoch_end(self, epoch, logs={}):
+            self.accuracies.append(logs.get('binary_accuracy'))
+            self.val_accuracies.append(logs.get('val_binary_accuracy'))
+            
+    acc_Callback = accuracyHistory()
+    
+    #Fit model with callback
+    info = model.fit(np.asarray(training_x),np.asarray(training_y), batch_size=32, validation_data = val_data, epochs = numEpochs, callbacks=[acc_Callback], verbose = 0)
+    
+    #Make plot of training and testing error
+    acc_vector = np.asarray(acc_Callback.accuracies).astype(float)
+    val_acc_vector = np.asarray(acc_Callback.val_accuracies).astype(float)
+    epochs = np.arange(numEpochs) + 1
+
+    plot.figure(1)
+    plot.plot(epochs, (1 - acc_vector), 'r') 
+    plot.plot(epochs, (1 - val_acc_vector), 'b') 
+    plot.legend({'Training','Testing'},fontsize = 12)
+    plot.xlabel('Epochs',fontsize = 16), plot.ylabel('Error',fontsize = 16)
+    plot.xlim([1,numEpochs]), plot.ylim([0, (np.amax(1 - val_acc_vector) + 0.1)])
+    plot.title('Misclassification',fontsize = 20)
+    
+    
+def ROC_and_PR_plots(training_x, training_y, testing_x, testing_y, model, numEpochs = 1000):
+    # ROC_and_PR_plots input
+    #training data
+    #testing data
+    #a model that has been compiled (does not need to be fitted)
+    #number of epochs (default 1000)
+    # Plots ROC and PR curves
+
+    earlyStop = callbacks.EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=100, mode='min', baseline=None, restore_best_weights=False)
+    val_data = [testing_x, testing_y]
+    model.fit(np.asarray(training_x), np.asarray(training_y),batch_size=32, validation_data = val_data, epochs = numEpochs, verbose = 0,callbacks=[earlyStop])
+
+    #False/true positive rates for ROC
+    training_y_pred = model.predict(training_x).ravel()
+    testing_y_pred = model.predict(testing_x).ravel()
+    
+    training_false_pos_rate, training_true_pos_rate, training_thresholds = roc_curve(training_y, training_y_pred)
+    testing_false_pos_rate, testing_true_pos_rate, testing_thresholds = roc_curve(testing_y, testing_y_pred)
+    
+    #Precision and recall
+    training_y_proba = model.predict_proba(training_x).ravel()
+    testing_y_proba = model.predict_proba(testing_x).ravel()
+    
+    training_precision, training_recall, training_thresholds_PR = precision_recall_curve(training_y, training_y_proba)
+    testing_precision, testing_recall, training_thresholds_PR = precision_recall_curve(testing_y, testing_y_proba)
+    
+    #ROC plot
+    plot.figure(2)
+    plot.plot([0,1],[0,1],'k--',label='_nolegend_')
+    plot.plot(training_false_pos_rate, training_true_pos_rate, 'r',label = 'Training')
+    plot.plot(testing_false_pos_rate, testing_true_pos_rate, 'b',label = 'Testing')
+
+    plot.xlabel('false positive rate',fontsize = 16), plot.ylabel('true positive rate',fontsize = 16)
+    plot.title('ROC curve',fontsize = 20)
+    plot.legend(fontsize = 12, loc='best')
+    plot.xlim([0,1]), plot.ylim([0,1])
+    
+    #Precision-Recall Plot
+    plot.figure(3)
+    plot.plot(training_recall, training_precision, 'r',label = 'Training')
+    plot.plot(testing_recall,testing_precision, 'b',label = 'Testing')
+    plot.ylabel('precision',fontsize = 16), plot.xlabel('recall',fontsize = 16)
+    plot.title('PR curve',fontsize = 20)
+    plot.legend(fontsize = 12, loc='best')
+    plot.xlim([0,1]), plot.ylim([0,1])
+    
+
 def load_data():
     file = "spambase.data"
     names = [
