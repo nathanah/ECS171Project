@@ -1,34 +1,56 @@
 import matplotlib.pyplot as plt
-# %matplotlib notebook
 import numpy as np
-# import seaborn as sns
 import warnings
-warnings.filterwarnings('ignore')
-import re  # For preprocessing
 import pandas as pd  # For data handling
-from time import time  # To time our operations
-from collections import defaultdict  # For word frequency
 
-import spacy  # For preprocessing
-from gensim.models import Word2Vec
-import logging  # Setting up the loggings to monitor gensim
-logging.basicConfig(format="%(levelname)s - %(asctime)s: %(message)s", datefmt= '%H:%M:%S', level=logging.INFO)
 from sklearn.manifold import TSNE
 from numpy import dot
 from numpy.linalg import norm
 from sklearn.neighbors import LocalOutlierFactor
-
-
+# from sklearn.ensemble import IsolationForest
 
 from mpl_toolkits.mplot3d import Axes3D as ax
 
+
+'''
+Isolation Forest equations
+Anomaly Score: s(x, n) = 2^-[E(h(x)) / c(n)]
+Calculates c(n), the average path length of UNSUCCESSFUL search in a Binary Search Tree
+n = number of nodes
+c(n) = 2H(n-1) - (2(n-1)/n)
+H(i) = ln(i) + E -- E = Euler's Constant = 0.5772156649
+
+Isolation Forest -- Randomly splits the data in between max and min value of the dataset and
+counts the number of splits it takes to isolate each data point. The data points
+that require a number of splits that is under a certain threshold is an outlier.
+Takes in the dataset with only the numeric features (8)
+Returns an array with 1's normal data points and -1 for outliers
+'''
+
+def isolation_forest(df):
+    clf = IsolationForest(behaviour='new', max_samples='auto', random_state=42, contamination='auto')
+    clf.fit(x)
+
+    outliers = clf.predict(x)
+
+    return outliers
+
+'''
+Local Outlier Factor -- Looks at the density of neighbors for each data point, low density of neighbors
+                          below a certain threshold means it is an outlier.
+Takes in the dataset with only the numeric features
+Returns an array with 1's normal data points and -1 for outliers
+'''
+
 def LOF(df):
-    lof = LocalOutlierFactor(contamination = 0.1)
+    lof = LocalOutlierFactor(contamination = 'auto')
     outliers = lof.fit_predict(df)
 
     return outliers
 
-def remove_outliers(df, lof):
+
+
+def remove_outliers_lof(df, lof):
 
     lof_indices = []
     lof_count = 0
@@ -47,50 +69,76 @@ def remove_outliers(df, lof):
 
     return df
 
-df = pd.read_csv('spambase.data', header=None, delimiter=',')
 
-# df1 = df.drop(columns=[57])
+def remove_outliers_iso(df, iso):
 
-lof = LOF(df.iloc[:, :-1])
+    iso_indices = []
+    iso_count = 0
 
-df1 = remove_outliers(df, lof)
+    for i in range(len(iso)):
+        if iso[i] == -1:
+            iso_count += 1
+            iso_indices.append(i)
 
-# print(df1.head())
+    for outlier in iso_indices:
+        df = df.drop([outlier], axis=0)
 
-df_spam = df1.loc[df[57] == 1].reset_index(drop=True).drop(columns=[57])
-df_not_spam = df1.loc[df[57] == 0].reset_index(drop=True).drop(columns=[57])
+    df.reset_index(inplace=True, drop=True)
 
-# print(df_not_spam.head(5))
+    # print("num outliers: " + str(iso_count))
 
-tsne = TSNE(n_components=3, random_state=0) # https://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html
-np.set_printoptions(suppress=True) # Supress -- doesn't use scientific notation, writes out full float value
-# fit_transform(self, X[, y]) Fit X into an embedded space and return that transformed output.
-Y_spam = tsne.fit_transform(df_spam) # Takes in vector with multiple values, calculates it into an X and Y value -- blackbox
-Y_not = tsne.fit_transform(df_not_spam)
+    return df
 
-x_coords_spam = Y_spam[:, 0]
-y_coords_spam = Y_spam[:, 1]
-z_coords_spam = Y_spam[:, 2]
+def main():
+    df = pd.read_csv('spambase.data', header=None, delimiter=',')
 
-x_coords_not = Y_not[:, 0]
-y_coords_not = Y_not[:, 1]
-z_coords_not = Y_not[:, 2]
+    # df_lof = df.drop(columns=[57])
 
-fig = plt.figure(figsize=(15, 12))
-ax = fig.add_subplot(111, projection='3d')
+    lof = LOF(df.iloc[:, :-1])
+    iso = isolation_forest(df.iloc[:, :-1])
 
-ax.scatter(x_coords_spam, y_coords_spam, z_coords_spam)
-ax.scatter(x_coords_not, y_coords_not, z_coords_not)
+    df_lof = remove_outliers_lof(df, lof)
+    df_iso = remove_outliers_iso(df, lof)
 
-# plt.scatter(x_coords_spam, y_coords_spam, color='red')
-# plt.scatter(x_coords_not, y_coords_not, color='green')
+    # print(df_lof.head())
 
-# plt.xlim(x_coords_spam.min()+50, x_coords_spam.max()+50)
-# plt.ylim(y_coords_spam.min()+50, y_coords_spam.max()+50)
-plt.show()
+    df_spam = df_lof.loc[df[57] == 1].reset_index(drop=True).drop(columns=[57])
+    df_not_spam = df_lof.loc[df[57] == 0].reset_index(drop=True).drop(columns=[57])
+
+    # print(df_not_spam.head(5))
+
+    tsne = TSNE(n_components=3, random_state=0) # https://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html
+    np.set_printoptions(suppress=True) # Supress -- doesn't use scientific notation, writes out full float value
+    # fit_transform(self, X[, y]) Fit X into an embedded space and return that transformed output.
+    Y_spam = tsne.fit_transform(df_spam) # Takes in vector with multiple values, calculates it into an X and Y value -- blackbox
+    Y_not = tsne.fit_transform(df_not_spam)
+
+    x_coords_spam = Y_spam[:, 0]
+    y_coords_spam = Y_spam[:, 1]
+    z_coords_spam = Y_spam[:, 2]
+
+    x_coords_not = Y_not[:, 0]
+    y_coords_not = Y_not[:, 1]
+    z_coords_not = Y_not[:, 2]
+
+    fig = plt.figure(figsize=(15, 12))
+    ax = fig.add_subplot(111, projection='3d')
+
+    ax.scatter(x_coords_spam, y_coords_spam, z_coords_spam)
+    ax.scatter(x_coords_not, y_coords_not, z_coords_not)
+
+    # plt.scatter(x_coords_spam, y_coords_spam, color='red')
+    # plt.scatter(x_coords_not, y_coords_not, color='green')
+
+    # plt.xlim(x_coords_spam.min()+50, x_coords_spam.max()+50)
+    # plt.ylim(y_coords_spam.min()+50, y_coords_spam.max()+50)
+    plt.show()
 
 
-# print(df.head(5))
+if __name__ == '__main__':
+    main()
+
+
 
 
 ## Graph predictions vs data points with tsne for visuals
