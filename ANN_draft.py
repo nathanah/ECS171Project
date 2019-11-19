@@ -82,11 +82,11 @@ def load_data():
 
 def construct_model(num_nodes, num_layers, learning_rate, loss_fn, activation_fn, output_fn):
     ann = Sequential()
-    ann.add(Dense(units = num_nodes, input_shape = (57,), activation = activation_fn))
+    ann.add(Dense(units = num_nodes, input_shape = (57,), activation = activation_fn, kernel_initializer="random_normal"))
 
     for l in range(1,num_layers):
-        ann.add(Dense(units = num_nodes, activation = activation_fn)) #hidden layers
-    ann.add(Dense(units = 1, activation = output_fn)) #output layer
+        ann.add(Dense(units = num_nodes, activation = activation_fn, kernel_initializer="random_normal")) #hidden layers
+    ann.add(Dense(units = 1, activation = output_fn, kernel_initializer="random_normal")) #output layer
         
     sgd = optimizers.SGD(lr=learning_rate, decay=1e-6, momentum=0.9, nesterov=False)
            
@@ -106,13 +106,13 @@ def grid_search(training_data, testing_data, max_hidden_layers, nodes_per_layer,
 
     for layer in range(max_hidden_layers):
         for i, nodes in enumerate(nodes_per_layer):
-            model = construct_model(layer + 1, nodes, learning_rate, loss_fn, activation_fn, output_fn)
+            model = construct_model(nodes, layer+1, learning_rate, loss_fn, activation_fn, output_fn)
             logs = model.fit(training_x, training_y, 
                       validation_data=(testing_x, testing_y),
                       shuffle=True,
                       batch_size=32,
                       verbose=0,
-                      epochs=1000,
+                      epochs=1500,
                       callbacks=[earlyStop])
             training_error[layer][i] = 1-logs.history['binary_accuracy'][-1]
             testing_error[layer][i] = 1-logs.history['val_binary_accuracy'][-1]
