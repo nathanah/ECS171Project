@@ -7,7 +7,7 @@ from sklearn.manifold import TSNE
 from numpy import dot
 from numpy.linalg import norm
 from sklearn.neighbors import LocalOutlierFactor
-# from sklearn.ensemble import IsolationForest
+from sklearn.ensemble import IsolationForest
 
 from mpl_toolkits.mplot3d import Axes3D as ax
 
@@ -28,10 +28,11 @@ Returns an array with 1's normal data points and -1 for outliers
 '''
 
 def isolation_forest(df):
-    clf = IsolationForest(behaviour='new', max_samples='auto', random_state=42, contamination='auto')
-    clf.fit(x)
 
-    outliers = clf.predict(x)
+    clf = IsolationForest(behaviour='new', max_samples='auto', random_state=42, contamination='auto')
+    clf.fit(df)
+
+    outliers = clf.predict(df)
 
     return outliers
 
@@ -43,6 +44,7 @@ Returns an array with 1's normal data points and -1 for outliers
 '''
 
 def LOF(df):
+
     lof = LocalOutlierFactor(contamination = 'auto')
     outliers = lof.fit_predict(df)
 
@@ -89,49 +91,63 @@ def remove_outliers_iso(df, iso):
 
     return df
 
+def tSNE_to_coords(df, n_components):
+
+    df_spam = df.loc[df[57] == 1].reset_index(drop=True).drop(columns=[57])
+    df_not_spam = df.loc[df[57] == 0].reset_index(drop=True).drop(columns=[57])
+
+
+    tsne = TSNE(n_components=n_components, random_state=42) # https://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html
+    np.set_printoptions(suppress=True) # Supress -- doesn't use scientific notation, writes out full float value
+
+    # fit_transform(self, X[, y]) Fit X into an embedded space and return that transformed output.
+    Y_spam = tsne.fit_transform(df_spam) # Takes in vector with multiple values, calculates it into an X and Y value -- blackbox
+    Y_not = tsne.fit_transform(df_not_spam)
+
+    spam_coords = []
+    not_spam_coords = []
+
+    for i in range(n_components):
+        spam_coords.append(Y_spam[:, i])
+        not_spam_coords.append(Y_not[:, i])
+
+    return spam_coords, not_spam_coords
+
+
 def main():
+
     df = pd.read_csv('spambase.data', header=None, delimiter=',')
 
     # df_lof = df.drop(columns=[57])
 
     lof = LOF(df.iloc[:, :-1])
     iso = isolation_forest(df.iloc[:, :-1])
+    n_components = 3 # Change to 3 for 3d plot, 2 for 2d plot
 
-    df_lof = remove_outliers_lof(df, lof)
-    df_iso = remove_outliers_iso(df, lof)
 
-    # print(df_lof.head())
+    # df1 = remove_outliers_lof(df, lof)
+    df1 = remove_outliers_iso(df, lof)
 
-    df_spam = df_lof.loc[df[57] == 1].reset_index(drop=True).drop(columns=[57])
-    df_not_spam = df_lof.loc[df[57] == 0].reset_index(drop=True).drop(columns=[57])
+    spam_coords, not_spam_coords = tSNE_to_coords(df1, n_components)
 
-    # print(df_not_spam.head(5))
+    df_spam = df1.loc[df[57] == 1].reset_index(drop=True).drop(columns=[57])
+    df_not_spam = df1.loc[df[57] == 0].reset_index(drop=True).drop(columns=[57])
 
-    tsne = TSNE(n_components=3, random_state=0) # https://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html
-    np.set_printoptions(suppress=True) # Supress -- doesn't use scientific notation, writes out full float value
-    # fit_transform(self, X[, y]) Fit X into an embedded space and return that transformed output.
-    Y_spam = tsne.fit_transform(df_spam) # Takes in vector with multiple values, calculates it into an X and Y value -- blackbox
-    Y_not = tsne.fit_transform(df_not_spam)
 
-    x_coords_spam = Y_spam[:, 0]
-    y_coords_spam = Y_spam[:, 1]
-    z_coords_spam = Y_spam[:, 2]
+    if n_components == 3:
 
-    x_coords_not = Y_not[:, 0]
-    y_coords_not = Y_not[:, 1]
-    z_coords_not = Y_not[:, 2]
+        fig = plt.figure(figsize=(12, 10))
+        ax = fig.add_subplot(111, projection='3d')
+        ax.scatter(spam_coords[0], spam_coords[1], spam_coords[2], color='red')
+        ax.scatter(not_spam_coords[0], not_spam_coords[1], not_spam_coords[2], color='blue')
 
-    fig = plt.figure(figsize=(15, 12))
-    ax = fig.add_subplot(111, projection='3d')
+    elif n_components == 2:
 
-    ax.scatter(x_coords_spam, y_coords_spam, z_coords_spam)
-    ax.scatter(x_coords_not, y_coords_not, z_coords_not)
+        plt.scatter(spam_coords[0], spam_coords[1], color='red')
+        plt.scatter(not_spam_coords[0], not_spam_coords[1], color='blue')
+        plt.xlim(spam_coords[0].min()-50, spam_coords[0].max()+50)
+        plt.ylim(spam_coords[1].min()-50, spam_coords[1].max()+50)
 
-    # plt.scatter(x_coords_spam, y_coords_spam, color='red')
-    # plt.scatter(x_coords_not, y_coords_not, color='green')
-
-    # plt.xlim(x_coords_spam.min()+50, x_coords_spam.max()+50)
-    # plt.ylim(y_coords_spam.min()+50, y_coords_spam.max()+50)
     plt.show()
 
 
