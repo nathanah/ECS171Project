@@ -133,7 +133,7 @@ def main():
     activation_fn = "sigmoid"
     output_fn = "sigmoid"
     loss_fn = "mean_squared_error"
-    lr = 0.001
+    lr = 0.005
     k = 10
 
     training_errors = np.zeros((k, max_hidden_layers, len(nodes_per_layer)))
