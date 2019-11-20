@@ -2,8 +2,7 @@ import numpy as np
 import random
 import copy
 import math
-
-priorMemo = 0
+import sys
 
 def readFile(file):
 
@@ -464,12 +463,24 @@ def kFold(data, folds, method):
 
 def main():
 
+    #Wants arguments in form: bayes.py filename method
+    if(len(sys.argv) != 3):
+        print("Program usage:")
+        print("  python bayes.py filepath method")
+        print()
+        print("Options for method:")
+        print("  0: no bucketing method")
+        print("  1: bucket using means")
+        print(">=2: bucket using specified number of buckets (ex: \"python bayes.py spambase.data 3\" will use 3 buckets)")
+
+        print()
+
     #Read in data and preprocess it. Replace the parameter with whatever path
-    data = readFile("spambase.data")
+    data = readFile(sys.argv[1])
     print("Finished preprocessing.")
 
     #Look at the method description above k-fold for usage
     #Use statistics to get information about the testing for each fold
-    statistics = kFold(data, 10, 10)
+    statistics = kFold(data, 10, int(sys.argv[2]))
 
 main()
