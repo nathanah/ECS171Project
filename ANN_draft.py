@@ -1,11 +1,8 @@
 import pandas as pd
 import numpy as np
-import tensorflow as tf
-import keras
 from keras.models import Sequential
 from keras.layers import Dense
-from keras import callbacks
-from keras import optimizers
+from keras import callbacks, optimizers
 from sklearn.preprocessing import MinMaxScaler
 
 from matplotlib import axes
