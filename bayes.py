@@ -351,7 +351,7 @@ def posterior(X, Y, s, prior, likelihood_func):
         dat[3]: the number of testing samples classified FN
         dat[4]: testing spam classification accuracy
 """
-def test(trainingX, trainingY, testingX, testingY):
+def test(trainingX, trainingY, testingX, testingY, method):
 
     #Track spam statistics
     TP = 0
@@ -362,8 +362,8 @@ def test(trainingX, trainingY, testingX, testingY):
     p = prior(trainingY)
 
     likelihood_func = likelihood()
-
-    print("Calculated prior:", p)
+    if(method == 0):
+        likelihood_func = gauss_likelihood()
 
     #Go through each sample
     for i in range(len(testingX)):
@@ -418,7 +418,7 @@ def test(trainingX, trainingY, testingX, testingY):
             accuracies[k][4]: spam classification testing accuracy
 
 """
-def kFold(data, folds, method):
+def kFold(data, folds, method, transformation):
 
     #Lower bound of our testing set
     lower = 0
@@ -440,13 +440,13 @@ def kFold(data, folds, method):
         trainingX = np.concatenate([X[:lower], X[upper:]])
         trainingY = np.concatenate([Y[:lower], Y[upper:]])
 
-        if(method == 1):
+        if(transformation == 1):
             bucket_closerMean(trainingX, trainingY, testingX, testingY)
-        if(method >= 2):
-            bucketed = bucket(method, trainingX, trainingY)
+        if(transformation >= 2):
+            bucketed = bucket(transformation, trainingX, trainingY)
             trainingX = bucketed[0]
             trainingY = bucketed[1]
-            bucketed = bucket(method, testingX, testingY)
+            bucketed = bucket(transformation, testingX, testingY)
             testingX = bucketed[0]
             testingY = bucketed[1]
 
@@ -455,7 +455,7 @@ def kFold(data, folds, method):
 
         #Using Ethan's method transform the testing data based on the training data only.
 
-        accuracies.append(test(trainingX, trainingY, testingX, testingY))
+        accuracies.append(test(trainingX, trainingY, testingX, testingY, method))
 
         lower = upper
 
@@ -464,16 +464,23 @@ def kFold(data, folds, method):
 def main():
 
     #Wants arguments in form: bayes.py filename method
-    if(len(sys.argv) != 3):
+    if(len(sys.argv) != 4):
+
         print("Program usage:")
-        print("  python bayes.py filepath method")
+        print("  python bayes.py filepath method transformation")
         print()
         print("Options for method:")
-        print("  0: no bucketing method")
-        print("  1: bucket using means")
-        print(">=2: bucket using specified number of buckets (ex: \"python bayes.py spambase.data 3\" will use 3 buckets)")
-
+        print("  0: assume gaussian distribution")
+        print("  1: discrete variable calculation")
         print()
+        print("Options for transformation: ")
+        print("<=0: no tranformation of data")
+        print("  1: transform data using a mean-bucketed method")
+        print(">=2: transform data using specified number of quantiles")
+        print()
+        print("ex:\n  \"python bayes.py spambase.data 1 3\"\n  will use 3 buckets and calculate likelihood using a discrete function")
+
+        return
 
     #Read in data and preprocess it. Replace the parameter with whatever path
     data = readFile(sys.argv[1])
@@ -481,6 +488,10 @@ def main():
 
     #Look at the method description above k-fold for usage
     #Use statistics to get information about the testing for each fold
-    statistics = kFold(data, 10, int(sys.argv[2]))
+    statistics = kFold(data, 10, int(sys.argv[2]), int(sys.argv[3]))
+    sum = 0
+    for i in range(len(statistics)):
+        sum += statistics[i][4]
+    print("Average accuracy:", sum / len(statistics))
 
 main()
