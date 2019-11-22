@@ -9,17 +9,13 @@ from matplotlib import axes
 from matplotlib import pyplot as plot
 from sklearn.metrics import roc_curve
 from sklearn.metrics import precision_recall_curve
+from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import auc
 
 
-def error_plot(training_x, training_y, testing_x, testing_y, model, numEpochs = 1000):
-    # Error_plot input
-    # training data
-    # testing data
-    # a model that has been compiled (does not need to be fitted)
-    # number of epochs (default 1000)
-    # Plots the misclassification rate at the end of each epoch
-
-    val_data = [testing_x, testing_y]
+def error_plot(X, y, model, numEpochs = 1000):
+    
     
     #callback to collect testing and training accuracy at end of each epoch
     class accuracyHistory(callbacks.Callback):
@@ -31,69 +27,117 @@ def error_plot(training_x, training_y, testing_x, testing_y, model, numEpochs = 
             self.val_accuracies.append(logs.get('val_binary_accuracy'))
             
     acc_Callback = accuracyHistory()
+    acc_matrix = np.zeros([10, numEpochs])
+    val_acc_matrix = np.zeros([10, numEpochs])
     
-    #Fit model with callback
-    info = model.fit(np.asarray(training_x),np.asarray(training_y), batch_size=32, validation_data = val_data, epochs = numEpochs, callbacks=[acc_Callback], verbose = 0)
-    
-    #Make plot of training and testing error
-    acc_vector = np.asarray(acc_Callback.accuracies).astype(float)
-    val_acc_vector = np.asarray(acc_Callback.val_accuracies).astype(float)
+    kf = StratifiedKFold(n_splits=10)
+    idx = 0
+    for train_index, test_index in kf.split(X = X, y = y):
+        training_x = np.asarray(X)[train_index,:]
+        testing_x = np.asarray(X)[test_index,:]
+        training_y = np.asarray(y)[train_index]
+        testing_y = np.asarray(y)[test_index]
+        #Fit model with callback
+        info = model.fit(training_x, training_y, batch_size=32, validation_data = [testing_x,testing_y], epochs = numEpochs, callbacks=[acc_Callback], verbose = 0)                
+        #Make plot of training and testing error
+        acc_matrix[idx,:] = np.asarray(acc_Callback.accuracies).astype(float)
+        val_acc_matrix[idx,:] = np.asarray(acc_Callback.val_accuracies).astype(float)
+        idx = idx + 1
+        
+    gen_acc = acc_matrix.mean(axis = 0)                   
+    gen_val_acc = val_acc_matrix.mean(axis = 0)
+                  
     epochs = np.arange(numEpochs) + 1
-
     plot.figure(1)
-    plot.plot(epochs, (1 - acc_vector), 'r') 
-    plot.plot(epochs, (1 - val_acc_vector), 'b') 
+    plot.plot(epochs, (1 - gen_acc), 'r') 
+    plot.plot(epochs, (1 - gen_val_acc), 'b') 
     plot.legend({'Training','Testing'},fontsize = 12)
-    plot.xlabel('Epochs',fontsize = 16), plot.ylabel('Error',fontsize = 16)
-    plot.xlim([1,numEpochs]), plot.ylim([0, (np.amax(1 - val_acc_vector) + 0.1)])
-    plot.title('Misclassification',fontsize = 20)
+    plot.xlabel('Epochs',fontsize = 16), plot.ylabel('Misclassification Rate',fontsize = 16)
+    plot.xlim([1,numEpochs]), plot.ylim([0, (np.amax(1 - gen_val_acc) + 0.1)])
+    plot.title('Generalized Error',fontsize = 20)
     
-    
-def ROC_and_PR_plots(training_x, training_y, testing_x, testing_y, model, numEpochs = 1000):
-    # ROC_and_PR_plots input
-    #training data
-    #testing data
-    #a model that has been compiled (does not need to be fitted)
-    #number of epochs (default 1000)
-    # Plots ROC and PR curves
-
+def ROC_and_PR_plots(X,y, model, numEpochs = 1000):
     earlyStop = callbacks.EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=100, mode='min', baseline=None, restore_best_weights=False)
-    val_data = [testing_x, testing_y]
-    model.fit(np.asarray(training_x), np.asarray(training_y),batch_size=32, validation_data = val_data, epochs = numEpochs, verbose = 0,callbacks=[earlyStop])
 
-    #False/true positive rates for ROC
-    training_y_pred = model.predict(training_x).ravel()
-    testing_y_pred = model.predict(testing_x).ravel()
+    kf = KFold(n_splits=10)
+    idx = 0
+    training_ROC_AUC = []
+    testing_ROC_AUC = []
+    training_PR_AUC = []
+    testing_PR_AUC = []
     
-    training_false_pos_rate, training_true_pos_rate, training_thresholds = roc_curve(training_y, training_y_pred)
-    testing_false_pos_rate, testing_true_pos_rate, testing_thresholds = roc_curve(testing_y, testing_y_pred)
+    for train_index, test_index in kf.split(X = X, y = y):
+        training_x = np.asarray(X)[train_index,:]
+        testing_x = np.asarray(X)[test_index,:]
+        training_y = np.asarray(y)[train_index]
+        testing_y = np.asarray(y)[test_index]
+        val_data = [testing_x, testing_y]
+        model.fit(training_x, training_y,batch_size=32, validation_data = val_data, epochs = numEpochs, verbose = 0,callbacks=[earlyStop])
+        
+        #False/true positive rates for ROC
+        training_y_pred = model.predict(training_x).ravel()
+        testing_y_pred = model.predict(testing_x).ravel()
     
-    #Precision and recall
-    training_y_proba = model.predict_proba(training_x).ravel()
-    testing_y_proba = model.predict_proba(testing_x).ravel()
+        training_false_pos_rate, training_true_pos_rate, training_thresholds = roc_curve(training_y, training_y_pred)
+        testing_false_pos_rate, testing_true_pos_rate, testing_thresholds = roc_curve(testing_y, testing_y_pred)
+        training_ROC_AUC.append(roc_auc_score(training_y, training_y_pred))
+        testing_ROC_AUC.append(roc_auc_score(testing_y, testing_y_pred))
+        
+        #Precision and recall
+        training_y_proba = model.predict_proba(training_x).ravel()
+        testing_y_proba = model.predict_proba(testing_x).ravel()
     
-    training_precision, training_recall, training_thresholds_PR = precision_recall_curve(training_y, training_y_proba)
-    testing_precision, testing_recall, training_thresholds_PR = precision_recall_curve(testing_y, testing_y_proba)
+        training_precision, training_recall, training_thresholds_PR = precision_recall_curve(training_y, training_y_proba)
+        testing_precision, testing_recall, training_thresholds_PR = precision_recall_curve(testing_y, testing_y_proba)
     
-    #ROC plot
+        training_PR_AUC.append(auc(training_recall, training_precision))
+        testing_PR_AUC.append(auc(testing_recall, testing_precision))
+    
+        #plot labels
+        labelTr = "_nolegend_"
+        labelTe = "_nolegend_"
+        if idx == 0:
+            labelTr = "Training"
+            labelTe = "Testing"
+        idx = idx + 1
+        
+        #Precision-Recall Plot
+        plot.figure(3)
+        plot.plot(training_recall, training_precision, 'r', label = labelTr, linewidth = 0.4)
+        plot.plot(testing_recall,testing_precision, 'b', label = labelTe,linewidth = 0.4)
+        plot.ylabel('precision',fontsize = 16), plot.xlabel('recall',fontsize = 16)
+        plot.title('PR curve',fontsize = 20)
+        plot.legend(fontsize = 12, loc='best')
+        plot.xlim([0,1]), plot.ylim([0,1])
+    
+        #ROC plot
+        plot.figure(2)
+        plot.plot([0,1],[0,1],'k--',label= '_nolegend_')
+        plot.plot(training_false_pos_rate, training_true_pos_rate, 'r',label = labelTr, linewidth = 0.4)
+        plot.plot(testing_false_pos_rate, testing_true_pos_rate, 'b',label = labelTe ,linewidth = 0.4)
+        plot.xlabel('false positive rate',fontsize = 16), plot.ylabel('true positive rate',fontsize = 16)
+        plot.title('ROC curve',fontsize = 20)
+        plot.legend(fontsize = 12, loc='best')
+        plot.xlim([0,1]), plot.ylim([0,1])
+    
+    
     plot.figure(2)
-    plot.plot([0,1],[0,1],'k--',label='_nolegend_')
-    plot.plot(training_false_pos_rate, training_true_pos_rate, 'r',label = 'Training')
-    plot.plot(testing_false_pos_rate, testing_true_pos_rate, 'b',label = 'Testing')
-
-    plot.xlabel('false positive rate',fontsize = 16), plot.ylabel('true positive rate',fontsize = 16)
-    plot.title('ROC curve',fontsize = 20)
-    plot.legend(fontsize = 12, loc='best')
-    plot.xlim([0,1]), plot.ylim([0,1])
+    ROC_val_Tr = str(np.round(np.asarray(training_ROC_AUC).mean(0),3))
+    AUC_text_Tr = 'Training AUC: ' + ROC_val_Tr
+    plot.text(0.6, 0.45, AUC_text_Tr ,fontsize = 12)
     
-    #Precision-Recall Plot
+    ROC_val_Te = str(np.round(np.asarray(testing_ROC_AUC).mean(0),3))
+    AUC_text_Te = 'Testing AUC: ' + ROC_val_Te
+    plot.text(0.6, 0.35, AUC_text_Te ,fontsize = 12)
+                              
     plot.figure(3)
-    plot.plot(training_recall, training_precision, 'r',label = 'Training')
-    plot.plot(testing_recall,testing_precision, 'b',label = 'Testing')
-    plot.ylabel('precision',fontsize = 16), plot.xlabel('recall',fontsize = 16)
-    plot.title('PR curve',fontsize = 20)
-    plot.legend(fontsize = 12, loc='best')
-    plot.xlim([0,1]), plot.ylim([0,1])
+    PR_val_Tr = str(np.round(np.asarray(training_PR_AUC).mean(0),3))
+    AUC_text_Tr = 'Training AUC: ' + PR_val_Tr
+    plot.text(0.05, 0.45, AUC_text_Tr ,fontsize = 12)
+    
+    PR_val_Te = str(np.round(np.asarray(testing_PR_AUC).mean(0),3))
+    AUC_text_Te = 'Testing AUC: ' + PR_val_Te
+    plot.text(0.05, 0.35, AUC_text_Te ,fontsize = 12)
     
 
 def load_data():
