@@ -295,6 +295,11 @@ def k_fold(data, test_index, k):
 
     return (training_data, testing_data)
 
+'''
+Performing grid search for specified activation, oputput, and loss functions.
+Designed to find the optimal set of hyperparameters and see where exactly
+overfitting starts
+'''
 def main():
     data = load_data()  #returns min-max scaled data
     max_hidden_layers = 3
@@ -320,6 +325,10 @@ def main():
     print("\nGeneralized training errors:\n", training_errors.mean(0))
     print("\nGeneralized testing errors:\n", testing_errors.mean(0))
 
+
+'''
+Once we obtain good hyperparameters, we can graph only those we wish to compare.
+'''
 def testing():
     data = load_data()  #returns min-max scaled data
     hidden_layers = 3
