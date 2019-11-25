@@ -294,9 +294,9 @@ def testing():
     lr = 0.005
     k = 10
 
-    x = data[:, :-1]
-    y = data[:, -1]
-    model = construct_model(num_nodes, hidden_layers, lr, loss_fn, activation_fn, output_fn)
+    x = data.iloc[:, :-1]
+    y = data.iloc[:, -1]
+    model = construct_model(nodes_per_layer, hidden_layers, lr, loss_fn, activation_fn, output_fn)
     error_plot(x, y, model)
     ROC_and_PR_plots(x, y, model)
 
