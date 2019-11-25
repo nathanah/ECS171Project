@@ -141,7 +141,10 @@ def ROC_and_PR_plots(X,y, model, numEpochs = 1000):
     AUC_text_Te = 'Testing AUC: ' + PR_val_Te
     plot.text(0.05, 0.35, AUC_text_Te ,fontsize = 12)
 
-
+'''
+Loads the data from ./spambase.data, shuffles it to eliminate any ordering that 
+may exist, and returns the min-max normalized version of it
+'''
 def load_data():
     file = "spambase.data"
     names = [
@@ -214,6 +217,15 @@ def load_data():
     data.iloc[:] = scaler.transform(data)
     return data
 
+'''
+Compiles and returns a model with the hyperparameters passed
+@num_nodes: the number of nodes per hidden layer
+@num_layers: the number of hidden layers
+@learning_rate: learning rate to use for model
+@loss_fn: loss function to use for model
+@activation_fn: activation function to use for the hidden layers. Can be a string or a predefined function
+@output_fn: activation function to use for the final layer. Can be a string or a predifined function
+'''
 def construct_model(num_nodes, num_layers, learning_rate, loss_fn, activation_fn, output_fn):
     ann = Sequential()
     ann.add(Dense(units=num_nodes, input_shape=(57,), activation=activation_fn))
@@ -230,6 +242,21 @@ def construct_model(num_nodes, num_layers, learning_rate, loss_fn, activation_fn
                 metrics=["binary_accuracy"])
     return ann
 
+'''
+Performs a grid search over the number of hidden nodes per layer and number of hidden layers
+for a model with a given activation function, learning rate, and output function.
+Returns a training error matrix and a testing error matrix with the misclassification 
+errors for each combination of hidden layers and nodes per layer.
+@training_data: data to train the model with
+@testing_data: data to test the model with
+@max_hidden_layers: maximum number of hidden layers to test. The function will test values
+from 1 to max_hidden_layers
+@nodes_per_layer: list containing different values of nodes per layer to test
+@learning_rate: learning rate the model should use
+@loss_fn: loss function the model should use
+@activation_fn: activation function the model should use for the hidden layers
+@output_fn: activation function the model should use for the output layer
+'''
 def grid_search(training_data, testing_data, max_hidden_layers, nodes_per_layer, learning_rate, loss_fn, activation_fn, output_fn):
     training_error = np.zeros((max_hidden_layers, len(nodes_per_layer)))
     testing_error = np.zeros((max_hidden_layers,len(nodes_per_layer)))
@@ -254,6 +281,13 @@ def grid_search(training_data, testing_data, max_hidden_layers, nodes_per_layer,
 
     return (training_error, testing_error)
 
+'''
+Returns the training and testing sets for a given number of folds given which iteration
+of testing we're on.
+@data: the whole dataset
+@test_index: index of the fold that should be used for testing. Must be between 0 and k
+@k: the number of folds
+'''
 def k_fold(data, test_index, k):
     fold_size = len(data)//k
     testing_data = np.asarray(data[test_index * fold_size:(test_index + 1) * fold_size])
