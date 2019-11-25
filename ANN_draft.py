@@ -55,7 +55,7 @@ def error_plot(X, y, model, numEpochs = 1000):
     plot.xlabel('Epochs',fontsize = 16), plot.ylabel('Misclassification Rate',fontsize = 16)
     plot.xlim([1,numEpochs]), plot.ylim([0, (np.amax(1 - gen_val_acc) + 0.1)])
     plot.title('Generalized Error',fontsize = 20)
-    plot.savetofig("Error")
+    plot.savefig("Error")
 
 def ROC_and_PR_plots(X,y, model, numEpochs = 1000):
     earlyStop = callbacks.EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=100, mode='min', baseline=None, restore_best_weights=False)
@@ -110,7 +110,7 @@ def ROC_and_PR_plots(X,y, model, numEpochs = 1000):
         plot.title('PR curve',fontsize = 20)
         plot.legend(fontsize = 12, loc='best')
         plot.xlim([0,1]), plot.ylim([0,1])
-        plot.savetofig("PR")
+        plot.savefig("PR")
 
         #ROC plot
         plot.figure(2)
@@ -121,7 +121,7 @@ def ROC_and_PR_plots(X,y, model, numEpochs = 1000):
         plot.title('ROC curve',fontsize = 20)
         plot.legend(fontsize = 12, loc='best')
         plot.xlim([0,1]), plot.ylim([0,1])
-        plot.savetofig("ROC")
+        plot.savefig("ROC")
 
     plot.figure(2)
     ROC_val_Tr = str(np.round(np.asarray(training_ROC_AUC).mean(0),3))
@@ -142,7 +142,7 @@ def ROC_and_PR_plots(X,y, model, numEpochs = 1000):
     plot.text(0.05, 0.35, AUC_text_Te ,fontsize = 12)
 
 '''
-Loads the data from ./spambase.data, shuffles it to eliminate any ordering that 
+Loads the data from ./spambase.data, shuffles it to eliminate any ordering that
 may exist, and returns the min-max normalized version of it
 '''
 def load_data():
@@ -245,7 +245,7 @@ def construct_model(num_nodes, num_layers, learning_rate, loss_fn, activation_fn
 '''
 Performs a grid search over the number of hidden nodes per layer and number of hidden layers
 for a model with a given activation function, learning rate, and output function.
-Returns a training error matrix and a testing error matrix with the misclassification 
+Returns a training error matrix and a testing error matrix with the misclassification
 errors for each combination of hidden layers and nodes per layer.
 @training_data: data to train the model with
 @testing_data: data to test the model with
