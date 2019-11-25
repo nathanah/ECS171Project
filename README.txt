@@ -5,6 +5,33 @@ Usage:
 ANN Code: ann.py
 Usage:
   put usage here
+  
+Evaluation:
+  The misclassification rate per epoch, Receiver Operating Characteristic (ROC) curve, and Precision-Recall (PR) curve give     insight to a model’s accuracy and efficiency. These three plots are created for any model with the error_plot function.       Figures ___ evaluate models     with parameters determined by grid search.
+  Enter the following model parameters in the Training method:
+  
+  Options for activation function:
+  "sigmoid"
+  "linear"
+  "leaky reLU"
+  "tanh"
+  
+  Options for output function:
+  "sigmoid"
+  "linear"
+  
+  Options for number of hidden layers:
+    Any nonzero positive integer
+    
+  Options for number of nodes per layer:
+    Any nonzero positive integer
+    
+  Options for learning rate:
+    Any nonzero positive number
+    
+   Options for loss function:
+   "binary cross-entropy"
+   "mse"
 
 
 Bayes Code: bayes.py
