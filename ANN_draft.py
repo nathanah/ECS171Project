@@ -10,7 +10,7 @@ from matplotlib import pyplot as plot
 from sklearn.metrics import roc_curve
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import roc_auc_score
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import KFold
 from sklearn.metrics import auc
 
 
@@ -30,7 +30,7 @@ def error_plot(X, y, model, numEpochs = 1000):
     acc_matrix = np.zeros([10, numEpochs])
     val_acc_matrix = np.zeros([10, numEpochs])
 
-    kf = StratifiedKFold(n_splits=10)
+    kf = KFold(n_splits=10)
     idx = 0
     for train_index, test_index in kf.split(X = X, y = y):
         training_x = np.asarray(X)[train_index,:]
@@ -321,12 +321,11 @@ def main():
 def testing():
     data = load_data()  #returns min-max scaled data
     hidden_layers = 3
-    nodes_per_layer = 10
-    activation_fn = "sigmoid"
-    output_fn = "sigmoid"
+    nodes_per_layer = 50
+    activation_fn = "tanh"
+    output_fn = "tanh"
     loss_fn = "mean_squared_error"
-    lr = 0.005
-    k = 10
+    lr = 0.12
 
     x = data.iloc[:, :-1]
     y = data.iloc[:, -1]
