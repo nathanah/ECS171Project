@@ -192,6 +192,7 @@ def prior(Y):
 """
 def likelihood():
 
+    #Memoized so we build the likelihood table as we test (saves time)
     memory = np.zeros(shape=(2, 57), dtype="object")
 
     def inner(X, Y, j, v, c):
@@ -260,6 +261,7 @@ def likelihood():
 """
 def gauss_likelihood():
 
+    #Memoized so we build the likelihood table as we test (saves time)
     memory = np.zeros(shape=(2, 57), dtype="object")
 
     def inner(X, Y, j, v, c):
@@ -285,6 +287,7 @@ def gauss_likelihood():
 
             total = 0
 
+            #Calculate sigma
             for i in range(len(X)):
                 if(Y[i] == c):
                     total += (X[i][j] - mu)**2
@@ -423,9 +426,12 @@ def kFold(data, folds, method, transformation):
     #Lower bound of our testing set
     lower = 0
 
-    accuracies = []
+    trainingStatistics = []
+    testingStatistics = []
 
     for k in range(folds):
+
+        print("Fold:", k + 1)
 
         #Copy our set so the original data isn't modified for other trainings
         X = copy.deepcopy(data[0])
@@ -441,8 +447,10 @@ def kFold(data, folds, method, transformation):
         trainingY = np.concatenate([Y[:lower], Y[upper:]])
 
         if(transformation == 1):
+            #Using mean buckets method transform the testing data based on the training data only.
             bucket_closerMean(trainingX, trainingY, testingX, testingY)
         if(transformation >= 2):
+            #Using a simple bucket method, bucket training and testing data
             bucketed = bucket(transformation, trainingX, trainingY)
             trainingX = bucketed[0]
             trainingY = bucketed[1]
@@ -450,16 +458,28 @@ def kFold(data, folds, method, transformation):
             testingX = bucketed[0]
             testingY = bucketed[1]
 
-        #Using a simple bucket method, bucket training and testing data
-
-
-        #Using Ethan's method transform the testing data based on the training data only.
-
-        accuracies.append(test(trainingX, trainingY, testingX, testingY, method))
-
+        print("Evaluating Training Set:")
+        trainingStatistics.append(test(trainingX, trainingY, trainingX, trainingY, method))
+        print("Evaluating Testing Set:")
+        testingStatistics.append(test(trainingX, trainingY, testingX, testingY, method))
+        print()
         lower = upper
 
-    return accuracies
+    sum = 0
+    for i in range(len(trainingStatistics)):
+        sum += trainingStatistics[i][4]
+    print("Average Training accuracy:", sum / len(trainingStatistics))
+
+    sum = 0
+    max = testingStatistics[0][4]
+    for i in range(len(testingStatistics)):
+        sum += testingStatistics[i][4]
+
+        if(max < testingStatistics[i][4]):
+            max = testingStatistics[i][4]
+
+    print("Average Testing accuracy:", sum / len(testingStatistics))
+    print("Max Testing Accuracy:", max)
 
 def main():
 
@@ -474,7 +494,7 @@ def main():
         print("  1: discrete variable calculation")
         print()
         print("Options for transformation: ")
-        print("<=0: no tranformation of data")
+        print("<=0: no transformation of data")
         print("  1: transform data using a mean-bucketed method")
         print(">=2: transform data using specified number of quantiles")
         print()
@@ -484,14 +504,9 @@ def main():
 
     #Read in data and preprocess it. Replace the parameter with whatever path
     data = readFile(sys.argv[1])
-    print("Finished preprocessing.")
 
     #Look at the method description above k-fold for usage
     #Use statistics to get information about the testing for each fold
-    statistics = kFold(data, 10, int(sys.argv[2]), int(sys.argv[3]))
-    sum = 0
-    for i in range(len(statistics)):
-        sum += statistics[i][4]
-    print("Average accuracy:", sum / len(statistics))
+    kFold(data, 10, int(sys.argv[2]), int(sys.argv[3]))
 
 main()
