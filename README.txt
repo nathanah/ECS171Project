@@ -26,4 +26,4 @@ Usage:
 
 Output:
   Prints TP/FP/TN/FN counts and accuracy for each batch of training and testing over 10 folds
-  Also prints the average testing accuracy at the end of training as well as max testing accuracy.
+  Also prints the average training and testing accuracy at the end of training as well as max testing accuracy.
