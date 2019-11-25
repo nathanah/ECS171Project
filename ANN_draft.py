@@ -55,6 +55,7 @@ def error_plot(X, y, model, numEpochs = 1000):
     plot.xlabel('Epochs',fontsize = 16), plot.ylabel('Misclassification Rate',fontsize = 16)
     plot.xlim([1,numEpochs]), plot.ylim([0, (np.amax(1 - gen_val_acc) + 0.1)])
     plot.title('Generalized Error',fontsize = 20)
+    plot.savetofig("Error")
 
 def ROC_and_PR_plots(X,y, model, numEpochs = 1000):
     earlyStop = callbacks.EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=100, mode='min', baseline=None, restore_best_weights=False)
@@ -109,6 +110,7 @@ def ROC_and_PR_plots(X,y, model, numEpochs = 1000):
         plot.title('PR curve',fontsize = 20)
         plot.legend(fontsize = 12, loc='best')
         plot.xlim([0,1]), plot.ylim([0,1])
+        plot.savetofig("PR")
 
         #ROC plot
         plot.figure(2)
@@ -119,7 +121,7 @@ def ROC_and_PR_plots(X,y, model, numEpochs = 1000):
         plot.title('ROC curve',fontsize = 20)
         plot.legend(fontsize = 12, loc='best')
         plot.xlim([0,1]), plot.ylim([0,1])
-
+        plot.savetofig("ROC")
 
     plot.figure(2)
     ROC_val_Tr = str(np.round(np.asarray(training_ROC_AUC).mean(0),3))
