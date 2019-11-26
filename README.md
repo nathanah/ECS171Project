@@ -6,22 +6,32 @@
   * matplotlib
   
 ## Usage:
-### Option to produce data without outliers:
+### Option to produce .data files without outliers:
 In the command line, run the code with 2 as a commandline argument:
-  python spam_outlier_detection.py 2
+```
+python spam_outlier_detection.py 2
+```
+
+> Output: spambase_iso.data, spambase_lof.data
   
 ### Option to produce tSNE graphs
+```
 python spam_outlier_detection.py (1) (2) (3)
-   Options for argument (1):
-        0: Isolation Forest
-        1: Local Outlier Factor
+```
 
-   Options for type of graph:
-        0: graph spam vs non-spam
-        1: graph outliers vs non-outliers
+(1): Options for the outlier method:
+* 0: Isolation Forest
+* 1: Local Outlier Factor
+
+(2): Options for graph content:
+* 0: graph spam vs non-spam
+* 1: graph outliers vs non-outliers
    
-   Options for tSNE dimension:
-        2, 3
+(3): Options for the tSNE dimension:
+* 2: 2 dimensional tSNE graph
+* 3: 3 dimensional tSNE graph
+
+> Output: 2-d or 3-d tSNE graph.
   
 
 # ANN Code: ann.py
