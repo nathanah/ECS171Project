@@ -3,6 +3,13 @@ Usage:
 
 
 ANN Code: ann.py
+Requires:
+  keras
+  tensorflow
+  pandas
+  sklearn
+  matplotlib
+
 Usage:
   put usage here
 
@@ -35,6 +42,9 @@ Evaluation:
 
 
 Bayes Code: bayes.py
+Requires:
+  numpy
+
 Usage:
   python bayes.py filepath method transformation
 
@@ -54,3 +64,10 @@ Usage:
 Output:
   Prints TP/FP/TN/FN counts and misclassification for each batch of training and testing over 10 folds
   Also prints the average training and testing misclassification at the end of training as well as min testing misclassification.
+
+Bayes graphing: bayes_graphing.py
+Requires:
+  matplotlib
+
+Usages:
+  python bayes_graphing.py filepath
