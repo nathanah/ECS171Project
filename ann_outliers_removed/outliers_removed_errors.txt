@@ -4,3 +4,8 @@ Error sigmoid bce lof: 0.0693189808845153
 Error sigmoid mse lof: 0.08396957694983563
 Error Leaky reLU mse lof: 0.019617229385745255
 Error Leaky reLU bce lof: 0.04503633637949966
+
+Error Leaky reLU bce iso: 0.054463894925440924
+Error Leaky reLU mse iso: 0.02851531727015317
+Error Leaky sigmoid mse iso: 0.08410240689415646
+Error Leaky sigmoid bce iso: 0.07362188178780826
