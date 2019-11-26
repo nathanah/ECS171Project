@@ -6,7 +6,7 @@
   n-components will change how many dimensions the graphs will have, either 2 for a 2-D graph or 3 for a
   3-D graph.
 
-  To get training and testing graphs:
+  ### To get training and testing graphs:
   
    For ann.py, comment out main() and uncomment testing() at the bottom of the code. Then, in load_data() function,
    replace file = 'spambase.data' with file = 'lof.data' for Local Outlier Factor outliers removed, and
@@ -73,7 +73,7 @@
   ### Options for transformation:
    * <=0: no transformation of data
    * 1: transform data using a mean-bucketed method
-   * >=2: transform data using specified number of quantiles
+   * \>=2: transform data using specified number of quantiles
 
   ### ex:
   "python bayes.py spambase.data 1 3"
