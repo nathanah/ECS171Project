@@ -291,6 +291,8 @@ overfitting starts
 '''
 def main():
     data = load_data()  #returns min-max scaled data
+    #Edit parameters here
+    #----------------------------------
     max_hidden_layers = 3
     nodes_per_layer = [3, 6, 10, 15, 30, 50, 100]
     activation_fn = "sigmoid"
@@ -298,6 +300,7 @@ def main():
     loss_fn = "mean_squared_error"
     lr = 0.005
     k = 10
+    #----------------------------------
 
     training_errors = np.zeros((k, max_hidden_layers, len(nodes_per_layer)))
     testing_errors = np.zeros((k, max_hidden_layers, len(nodes_per_layer)))
@@ -320,12 +323,15 @@ Once we obtain good hyperparameters, we can graph only those we wish to compare.
 '''
 def testing():
     data = load_data()  #returns min-max scaled data
+    #Edit parameters here
+    #----------------------------------
     hidden_layers = 3
     nodes_per_layer = 50
     activation_fn = "tanh"
     output_fn = "tanh"
     loss_fn = "mean_squared_error"
     lr = 0.12
+    #----------------------------------
 
     x = data.iloc[:, :-1]
     y = data.iloc[:, -1]

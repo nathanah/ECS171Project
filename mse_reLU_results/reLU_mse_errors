@@ -1,7 +1,0 @@
-Error reLU bce lof: 0.0468587037647017
-Error reLU bce iso: 0.05216739597134049
-Error reLU bce original: 0.051426897913740374
-
-Error reLU mse lof: 0.035778288641184
-Error reLU mse iso: 0.04925492336005949
-Error reLU mse original: 0.04794788490574357
