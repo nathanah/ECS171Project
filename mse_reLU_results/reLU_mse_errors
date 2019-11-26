@@ -1,3 +1,7 @@
 Error Leaky reLU mse lof: 0.019617229385745255
 Error Leaky reLU mse iso: 0.02851531727015317
 Error Leaky reLU mse original: 0.02957730109643554
+
+Error Leaky reLU bce lof: 0.07976360139335366
+Error Leaky reLU bce iso: 0.08810722092765687
+Error Leaky reLU bce original: 0.0912732008047332
