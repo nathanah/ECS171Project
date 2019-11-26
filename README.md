@@ -8,11 +8,11 @@
 
   To get training and testing graphs:
   
-    For ann.py, comment out main() and uncomment testing() at the bottom of the code. Then, in load_data() function,
-    replace file = 'spambase.data' with file = 'lof.data' for Local Outlier Factor outliers removed, and
-    file = 'iso.data' for Isolation Forest outliers removed. in testing() function, you can change the activation
-    function (activation_fn variable) to 'sigmoid', 'linear', 'leaky reLU', and 'tanh', where the output function
-    (output_fn variable) should be 'sigmoid'.
+   For ann.py, comment out main() and uncomment testing() at the bottom of the code. Then, in load_data() function,
+   replace file = 'spambase.data' with file = 'lof.data' for Local Outlier Factor outliers removed, and
+   file = 'iso.data' for Isolation Forest outliers removed. in testing() function, you can change the activation
+   function (activation_fn variable) to 'sigmoid', 'linear', 'leaky reLU', and 'tanh', where the output function
+   (output_fn variable) should be 'sigmoid'.
 
 
 # ANN Code: ann.py
