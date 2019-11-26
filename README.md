@@ -19,12 +19,6 @@ Run the code with {0,1} {0,1} {2,3} as the commandline arguments:
 ```
 python spam_outlier_detection.py (1) (2) (3)
 ```
-Example:
-```
-python spam_outlier_detection.py 0 0 2
-```
-Utilizing Isolation Forest it will graph spam vs not-spam on 2 tSNE dimensions.
-
 (1): Options for the outlier method:
   * 0: Isolation Forest 
   * 1: Local Outlier Factor
@@ -39,6 +33,12 @@ Utilizing Isolation Forest it will graph spam vs not-spam on 2 tSNE dimensions.
 
 > Output: 2-d or 3-d tSNE graph.
   
+  
+Example:
+```
+python spam_outlier_detection.py 0 0 2
+```
+Utilizing Isolation Forest it will graph spam vs not-spam on 2 tSNE dimensions.
 
 # ANN Code: ann.py
 ## Requires:
