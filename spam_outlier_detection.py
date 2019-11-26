@@ -67,8 +67,6 @@ def remove_outliers_lof(df, lof):
 
     df.reset_index(inplace=True, drop=True)
 
-    # print("num outliers: " + str(lof_count))
-
     return df
 
 
@@ -87,12 +85,10 @@ def remove_outliers_iso(df, iso):
 
     df.reset_index(inplace=True, drop=True)
 
-    # print("num outliers: " + str(iso_count))
-
     return df
 
 
-def tSNE_to_coords(df, n_components):
+def tSNE_spam(df, n_components):
 
     df_spam = df.loc[df[57] == 1].reset_index(drop=True).drop(columns=[57])
     df_not_spam = df.loc[df[57] == 0].reset_index(drop=True).drop(columns=[57])
@@ -151,7 +147,7 @@ def graph(n_components, target, coords, not_coords, name):
         ax.set_xlabel('axis 1', fontsize=16)
         ax.set_ylabel('axis 2', fontsize=16)
         ax.set_zlabel('axis 3', fontsize=16)
-        ax.set_title('Method: '+ name)
+        # ax.set_title('Method: '+ name)
     # 2 dimension graph
     elif n_components == 2:
         plt.scatter(coords[0], coords[1], s=4, color='red', label = target)
@@ -159,7 +155,7 @@ def graph(n_components, target, coords, not_coords, name):
         plt.legend(loc='upper right')
         plt.xlim(coords[0].min()-75, coords[0].max()+75)
         plt.ylim(coords[1].min()-75, coords[1].max()+75)
-        plt.title('Method: '+ name)
+        # plt.title('Method: '+ name)
 
     plt.show()
 
@@ -196,54 +192,59 @@ def graph_spam(df, n_components, lof_bool):
         name = 'Isolation Forest'
 
     # get tSNE spam vectors and graph them
-    spam_coords, not_spam_coords = tSNE_to_coords(df1, n_components)
+    spam_coords, not_spam_coords = tSNE_spam(df1, n_components)
     graph(n_components, 'spam', spam_coords, not_spam_coords, name)
+
+
+def strip_outliers(df):
+    lof = LOF(df.iloc[:, :-1])
+    df_lof = remove_outliers_lof(df, lof)
+    df_lof.to_csv('spambase_lof.data', header=None, index=False)
+
+    iso = isolation_forest(df.iloc[:, :-1])
+    df_iso = remove_outliers_iso(df, iso)
+    df_iso.to_csv('spambase_iso.data', header=None, index=False)
 
 
 def main():
 
+    if (len(sys.argv) == 2 and int(sys.argv[1]) == 2):
+        df = pd.read_csv('spambase.data', header=None, delimiter=',')
+        strip_outliers(df)
+
+        return
+
+
+    #Wants arguments in form: spam_outlier_detection.py method graph_type tSNE_dimension
+    if(len(sys.argv) != 4):
+
+        print("Parse data set for LOF and ISO outliers: ")
+        print("\"python spam_outlier_detection.py 2\"")
+        print()
+        print()
+        print("Graph outlier methods onto tSNE reduced graphs: ")
+        print("Options for method: ")
+        print("  0: Isolation Forest")
+        print("  1: Local Outlier Factor")
+        print()
+        print("Options for type of graph:")
+        print("  0: graph spam vs non-spam")
+        print("  1: graph outliers vs non-outliers")
+        print()
+        print("Options for tSNE dimension: ")
+        print("  2, 3")
+        print()
+        print("ex:  \"python spam_outlier_detection.py 0 1 3\"\n  will use Isolation Forest to graph outliers in 3 dimensions")
+
+        return
+
     df = pd.read_csv('spambase.data', header=None, delimiter=',')
 
-    outlier = True      # Graphing outliers or spam
-    lof_bool = False     # Using lof or iso
-    n_components = 2    # Change to 3 for 3d plot, 2 for 2d plot
-
-    if outlier == True:
-        graph_outliers(df, n_components, lof_bool)
-
+    if (int(sys.argv[2])):
+        graph_outliers(df, int(sys.argv[3]), int(sys.argv[1]))
     else:
-        graph_spam(df, n_components, lof_bool)
-        
-
-    # #Wants arguments in form: spam_outlier_detection.py method graph_type tSNE_dimension
-    # if(len(sys.argv) != 4):
-
-    #     print("Options for method: ")
-    #     print("  0: Isolation Forest")
-    #     print("  1: Local Outlier Factor")
-    #     print()
-    #     print("Options for type of graph:")
-    #     print("  0: graph spam vs non-spam")
-    #     print("  1: graph outliers vs non-outliers")
-    #     print()
-    #     print("Options for tSNE dimension: ")
-    #     print("  2, 3")
-    #     print()
-    #     print("ex:\n  \"python spam_outlier_detection.py 0 1 3\"\n  will use Isolation Forest to graph outliers in 3 dimensions")
-
-    #     return
-
-    # if sys.argv[2]:
-    #     graph_outliers(df, int(sys.argv[3]), int(sys.argv[1]))
-
-    # else:
-    #     graph_spam(df, int(sys.argv[3]), int(sys.argv[1]))
+        graph_spam(df, int(sys.argv[3]), int(sys.argv[1]))
 
 
 if __name__ == '__main__':
     main()
-
-
-
-
-## Graph predictions vs data points with tsne for visuals
