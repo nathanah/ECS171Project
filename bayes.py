@@ -4,6 +4,9 @@ import copy
 import math
 import sys
 
+import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+
 def readFile(file):
 
     file = open(file, 'r')
@@ -417,7 +420,7 @@ def test(trainingX, trainingY, testingX, testingY, method):
             accuracies[k][0]: the number of testing samples classified TP
             accuracies[k][1]: the number of testing samples classified TN
             accuracies[k][2]: the number of testing samples classified FP
-            accuracies[k][3]: the number of testing samples classified TN
+            accuracies[k][3]: the number of testing samples classified FN
             accuracies[k][4]: spam classification testing accuracy
 
 """
@@ -468,7 +471,7 @@ def kFold(data, folds, method, transformation):
     sum = 0
     for i in range(len(trainingStatistics)):
         sum += trainingStatistics[i][4]
-    print("Average Training accuracy:", sum / len(trainingStatistics))
+    print("Average Training misclassification:", 1 -(sum / len(trainingStatistics)))
 
     sum = 0
     max = testingStatistics[0][4]
@@ -478,8 +481,8 @@ def kFold(data, folds, method, transformation):
         if(max < testingStatistics[i][4]):
             max = testingStatistics[i][4]
 
-    print("Average Testing accuracy:", sum / len(testingStatistics))
-    print("Max Testing Accuracy:", max)
+    print("Average Testing Misclassification:", 1 - (sum / len(testingStatistics)))
+    print("Min Testing Misclassification:", 1 - max)
 
     return [trainingStatistics, testingStatistics]
 
