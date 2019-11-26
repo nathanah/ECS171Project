@@ -483,7 +483,7 @@ def kFold(data, folds, method, transformation):
 
 def main():
 
-    #Wants arguments in form: bayes.py filename method
+    #Wants arguments in form: bayes.py filename method transformation
     if(len(sys.argv) != 4):
 
         print("Program usage:")
