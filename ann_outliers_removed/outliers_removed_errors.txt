@@ -1,0 +1,6 @@
+Error tanh mse lof: 0.06065812690815439
+Error tanh bce lof: 0.04354612600214674
+Error sigmoid bce lof: 0.0693189808845153
+Error sigmoid mse lof: 0.08396957694983563
+Error Leaky reLU mse lof: 0.019617229385745255
+Error Leaky reLU bce lof: 0.04503633637949966
