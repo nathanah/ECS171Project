@@ -1,5 +1,18 @@
 Preprocess Code: spam_outlier_detection.py
 Usage:
+  In main() function, to graph outliers vs non-outliers, set variable outlier to True, False to see spam vs
+  non-spam data. When running with outlier=False, the data set will save as a new Data Frame with outliers
+  removed: lof.data for Local Outlier Factor results and iso.data for Isolation Forest results. Setting
+  n-components will change how many dimensions the graphs will have, either 2 for a 2-D graph or 3 for a
+  3-D graph.
+
+  To get training and testing graphs:
+  
+    For ann.py, comment out main() and uncomment testing() at the bottom of the code. Then, in load_data() function,
+    replace file = 'spambase.data' with file = 'lof.data' for Local Outlier Factor outliers removed, and
+    file = 'iso.data' for Isolation Forest outliers removed. in testing() function, you can change the activation
+    function (activation_fn variable) to 'sigmoid', 'linear', 'leaky reLU', and 'tanh', where the output function
+    (output_fn variable) should be 'sigmoid'.
 
 
 ANN Code: ann.py
