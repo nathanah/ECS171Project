@@ -1,5 +1,5 @@
-Preprocess Code: spam_outlier_detection.py
-Usage:
+#Preprocess Code: spam_outlier_detection.py
+##Usage:
   In main() function, to graph outliers vs non-outliers, set variable outlier to True, False to see spam vs
   non-spam data. When running with outlier=False, the data set will save as a new Data Frame with outliers
   removed: lof.data for Local Outlier Factor results and iso.data for Isolation Forest results. Setting
@@ -15,15 +15,15 @@ Usage:
     (output_fn variable) should be 'sigmoid'.
 
 
-ANN Code: ann.py
-Requires:
+#ANN Code: ann.py
+##Requires:
   keras
   tensorflow
   pandas
   sklearn
   matplotlib
 
-Set up:
+##Set up:
   To perform a grid search over the number of nodes per layer and number of hidden layers, change max_hidden_layers in
   main() to one of the options described below. Set the learning rate by changing the lr variable in main and set the 
   value of k for k-fold validation by changing k (again, options below). Setting the activation function, output layer 
@@ -37,21 +37,21 @@ Set up:
   change the learning rate by setting lr, and set the activation, output and loss functions by changing activation_fn, 
   output_fn, and loss_fn.
   
- Usage: python3 ann.py
+ ##Usage: python3 ann.py
 
-  Options for activation/output function:
+  ###Options for activation/output function:
   "sigmoid"
   "linear"
   layers.LeakyReLU(alpha=0.01)
   "tanh"
 
-  Options for number of hidden layers:
+  ###Options for number of hidden layers:
     Any nonzero positive integer
 
-  Options for number of nodes per layer:
+  ###Options for number of nodes per layer:
     Any nonzero positive integer (or list of positive integers if setting in main)
 
-  Options for learning rate:
+  ###Options for learning rate:
     Any nonzero positive number
 
    Options for loss function:
@@ -59,33 +59,33 @@ Set up:
    "mse"
 
 
-Bayes Code: bayes.py
-Requires:
+#Bayes Code: bayes.py
+##Requires:
   numpy
 
-Usage:
+##Usage:
   python bayes.py filepath method transformation
 
-  Options for method:
+  ###Options for method:
   0: assume gaussian distribution
   1: discrete variable calculation
 
-  Options for transformation:
+  ###Options for transformation:
   <=0: no transformation of data
   1: transform data using a mean-bucketed method
   >=2: transform data using specified number of quantiles
 
-  ex:
+  ###ex:
   "python bayes.py spambase.data 1 3"
   will use 3 buckets and calculate likelihood using a discrete function
 
-Output:
+##Output:
   Prints TP/FP/TN/FN counts and misclassification for each batch of training and testing over 10 folds
   Also prints the average training and testing misclassification at the end of training as well as min testing misclassification.
 
-Bayes graphing: bayes_graphing.py
-Requires:
+#Bayes graphing: bayes_graphing.py
+##Requires:
   matplotlib
 
-Usages:
+##Usages:
   python bayes_graphing.py filepath
