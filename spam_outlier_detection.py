@@ -56,6 +56,7 @@ def remove_outliers_lof(df, lof):
 
     lof_indices = []
     lof_count = 0
+    print(df)
 
     for i in range(len(lof)):
         if lof[i] == -1:
@@ -189,22 +190,24 @@ def graph_spam(df, n_components, lof_bool):
     if lof_bool:    # Classify outliers using Local Outlier Factor
         lof = LOF(df.iloc[:, :-1])
         df1 = remove_outliers_lof(df, lof)
+        df1.to_csv('lof.data', header=False, index=False, float_format='%g')
         name = 'Local Outlier Factor'
     else:           # Classify outliers using Isolation Forest
         iso = isolation_forest(df.iloc[:, :-1])
         df1 = remove_outliers_iso(df, iso)
+        df1.to_csv('iso.data', header=False, index=False, float_format='%g')
         name = 'Isolation Forest'
 
     # get tSNE spam vectors and graph them
-    spam_coords, not_spam_coords = tSNE_to_coords(df1, n_components)
-    graph(n_components, 'spam', spam_coords, not_spam_coords, name)
+    # spam_coords, not_spam_coords = tSNE_to_coords(df1, n_components)
+    # graph(n_components, 'spam', spam_coords, not_spam_coords, name)
 
 
 def main():
 
     df = pd.read_csv('spambase.data', header=None, delimiter=',')
 
-    outlier = True      # Graphing outliers or spam
+    outlier = False      # Graphing outliers or spam
     lof_bool = False     # Using lof or iso
     n_components = 2    # Change to 3 for 3d plot, 2 for 2d plot
 
