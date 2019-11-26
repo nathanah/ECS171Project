@@ -14,6 +14,9 @@ from sklearn.model_selection import KFold
 from sklearn.metrics import auc
 
 
+'''
+Trains model provided over input data for numEpochs and saves error, ROC, and PR graphs.
+'''
 def error_plot(X, y, model, numEpochs = 1000):
 
 
