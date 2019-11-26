@@ -7,7 +7,7 @@
   
 ## Usage:
 ### Option to produce .data files without outliers:
-In the command line, run the code with 2 as a commandline argument:
+Run the code with 2 as a commandline argument:
 ```
 python spam_outlier_detection.py 2
 ```
@@ -15,21 +15,22 @@ python spam_outlier_detection.py 2
 > Output: spambase_iso.data, spambase_lof.data
   
 ### Option to produce tSNE graphs
+Run the code with {0,1} {0,1} {2,3} as the commandline arguments:
 ```
 python spam_outlier_detection.py (1) (2) (3)
 ```
 
 (1): Options for the outlier method:
-* 0: Isolation Forest
-* 1: Local Outlier Factor
+  * 0: Isolation Forest 
+  * 1: Local Outlier Factor
 
 (2): Options for graph content:
-* 0: graph spam vs non-spam
-* 1: graph outliers vs non-outliers
-   
+  * 0: graph spam vs non-spam
+  * 1: graph outliers vs non-outliers
+  
 (3): Options for the tSNE dimension:
-* 2: 2 dimensional tSNE graph
-* 3: 3 dimensional tSNE graph
+  * 2: two-dimensional tSNE graph
+  * 3: tree-dimensional tSNE graph
 
 > Output: 2-d or 3-d tSNE graph.
   
