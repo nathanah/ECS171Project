@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense
-from keras import callbacks, optimizers
+from keras import callbacks, optimizers, layers
 from sklearn.preprocessing import MinMaxScaler
 
 from matplotlib import axes
