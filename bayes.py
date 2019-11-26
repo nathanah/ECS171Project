@@ -4,9 +4,6 @@ import copy
 import math
 import sys
 
-import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
-
 def readFile(file):
 
     file = open(file, 'r')
