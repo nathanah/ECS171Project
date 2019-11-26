@@ -4,6 +4,15 @@ import copy
 import math
 import sys
 
+"""
+    Read in the datafile and apply min-max normalization on it.
+
+    Params:
+        file: the name of the file to be read in. Passed through cmd line args
+
+    Returns:
+        arraying containing X and Y vectors
+"""
 def readFile(file):
 
     file = open(file, 'r')
@@ -49,7 +58,6 @@ def readFile(file):
 
 
 """
-    Bayes nets usually work on discrete values, not continuous variables.
     This function transforms the continuous values of our data into discrete buckets with labels.
 
     Params:
