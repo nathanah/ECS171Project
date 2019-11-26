@@ -26,7 +26,8 @@ Requires:
 Set up:
   To perform a grid search over the number of nodes per layer and number of hidden layers, change max_hidden_layers in
   main() to one of the options described below. Set the learning rate by changing the lr variable in main and set the 
-  value of k for k-fold validation by changing k (again, options below). Setting the activation function, output layer activation function, and loss function is achieved by changing activation_fn, output_fn, and loss_fn respectively. 
+  value of k for k-fold validation by changing k (again, options below). Setting the activation function, output layer 
+  activation function, and loss function is achieved by changing activation_fn, output_fn, and loss_fn respectively. 
   Comment out the call to testing() at the end of the file and call main(). At the end of each fold, the training and 
   testing misclassification error matrices will be printed, where the row corresponds to the number of hidden layers 
   and the column corresponds to the number of nodes per layer.
