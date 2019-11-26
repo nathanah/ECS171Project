@@ -1,4 +1,4 @@
-# Preprocess Code: spam_outlier_detection.py
+# Preprocessing Code: spam_outlier_detection.py
 ## Usage:
   In main() function, to graph outliers vs non-outliers, set variable outlier to True, False to see spam vs
   non-spam data. When running with outlier=False, the data set will save as a new Data Frame with outliers
@@ -17,11 +17,11 @@
 
 # ANN Code: ann.py
 ## Requires:
-  keras
-  tensorflow
-  pandas
-  sklearn
-  matplotlib
+  * keras
+  * tensorflow
+  * pandas
+  * sklearn
+  * matplotlib
 
 ## Set up:
   To perform a grid search over the number of nodes per layer and number of hidden layers, change max_hidden_layers in
@@ -40,40 +40,40 @@
  ## Usage: python3 ann.py
 
   ### Options for activation/output function:
-  "sigmoid"
-  "linear"
-  layers.LeakyReLU(alpha=0.01)
-  "tanh"
+  * "sigmoid"
+  * "linear"
+  * layers.LeakyReLU(alpha=0.01)
+  * "tanh"
 
   ### Options for number of hidden layers:
-    Any nonzero positive integer
+   * Any nonzero positive integer
 
   ### Options for number of nodes per layer:
-    Any nonzero positive integer (or list of positive integers if setting in main)
+   * Any nonzero positive integer (or list of positive integers if setting in main)
 
   ### Options for learning rate:
-    Any nonzero positive number
+   * Any nonzero positive number
 
-   Options for loss function:
-   "binary cross-entropy"
-   "mse"
+  ### Options for loss function:
+   * "binary cross-entropy"
+   * "mse"
 
 
 # Bayes Code: bayes.py
 ## Requires:
-  numpy
+  * numpy
 
 ## Usage:
   python bayes.py filepath method transformation
 
   ### Options for method:
-  0: assume gaussian distribution
-  1: discrete variable calculation
+   * 0: assume gaussian distribution
+   * 1: discrete variable calculation
 
   ### Options for transformation:
-  <=0: no transformation of data
-  1: transform data using a mean-bucketed method
-  >=2: transform data using specified number of quantiles
+   * <=0: no transformation of data
+   * 1: transform data using a mean-bucketed method
+   * >=2: transform data using specified number of quantiles
 
   ### ex:
   "python bayes.py spambase.data 1 3"
@@ -85,7 +85,7 @@
 
 # Bayes graphing: bayes_graphing.py
 ## Requires:
-  matplotlib
+   * matplotlib
 
 ## Usages:
   python bayes_graphing.py filepath
