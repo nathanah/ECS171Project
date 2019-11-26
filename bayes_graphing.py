@@ -4,15 +4,9 @@ import copy
 import math
 import sys
 
-"""
-    Read in the datafile and apply min-max normalization on it.
+from matplotlib.lines import Line2D
+import matplotlib.pyplot as plt
 
-    Params:
-        file: the name of the file to be read in. Passed through cmd line args
-
-    Returns:
-        arraying containing X and Y vectors
-"""
 def readFile(file):
 
     file = open(file, 'r')
@@ -58,6 +52,7 @@ def readFile(file):
 
 
 """
+    Bayes nets usually work on discrete values, not continuous variables.
     This function transforms the continuous values of our data into discrete buckets with labels.
 
     Params:
@@ -362,7 +357,7 @@ def posterior(X, Y, s, prior, likelihood_func):
         dat[3]: the number of testing samples classified FN
         dat[4]: testing spam classification accuracy
 """
-def test(trainingX, trainingY, testingX, testingY, method):
+def test(trainingX, trainingY, testingX, testingY, method, threshold):
 
     #Track spam statistics
     TP = 0
@@ -380,7 +375,7 @@ def test(trainingX, trainingY, testingX, testingY, method):
     for i in range(len(testingX)):
         predict = posterior(trainingX, trainingY, testingX[i], p, likelihood_func)
         #If the prediction is >= it is spam
-        if(predict >= 1):
+        if(predict >= threshold):
 
             #If the sample is spam, guessed correctly (TP)
             if(testingY[i] == 1):
@@ -425,11 +420,11 @@ def test(trainingX, trainingY, testingX, testingY, method):
             accuracies[k][0]: the number of testing samples classified TP
             accuracies[k][1]: the number of testing samples classified TN
             accuracies[k][2]: the number of testing samples classified FP
-            accuracies[k][3]: the number of testing samples classified FN
+            accuracies[k][3]: the number of testing samples classified TN
             accuracies[k][4]: spam classification testing accuracy
 
 """
-def kFold(data, folds, method, transformation):
+def kFold(data, folds, method, transformation, threshold):
 
     #Lower bound of our testing set
     lower = 0
@@ -467,16 +462,16 @@ def kFold(data, folds, method, transformation):
             testingY = bucketed[1]
 
         print("Evaluating Training Set:")
-        trainingStatistics.append(test(trainingX, trainingY, trainingX, trainingY, method))
+        trainingStatistics.append(test(trainingX, trainingY, trainingX, trainingY, method, threshold))
         print("Evaluating Testing Set:")
-        testingStatistics.append(test(trainingX, trainingY, testingX, testingY, method))
+        testingStatistics.append(test(trainingX, trainingY, testingX, testingY, method, threshold))
         print()
         lower = upper
 
     sum = 0
     for i in range(len(trainingStatistics)):
         sum += trainingStatistics[i][4]
-    print("Average Training misclassification:", 1 -(sum / len(trainingStatistics)))
+    print("Average Training accuracy:", sum / len(trainingStatistics))
 
     sum = 0
     max = testingStatistics[0][4]
@@ -486,37 +481,100 @@ def kFold(data, folds, method, transformation):
         if(max < testingStatistics[i][4]):
             max = testingStatistics[i][4]
 
-    print("Average Testing Misclassification:", 1 - (sum / len(testingStatistics)))
-    print("Min Testing Misclassification:", 1 - max)
+    print("Average Testing accuracy:", sum / len(testingStatistics))
+    print("Max Testing Accuracy:", max)
 
     return [trainingStatistics, testingStatistics]
 
 def main():
 
     #Wants arguments in form: bayes.py filename method transformation
-    if(len(sys.argv) != 4):
+    if(len(sys.argv) != 2):
 
         print("Program usage:")
-        print("  python bayes.py filepath method transformation")
-        print()
-        print("Options for method:")
-        print("  0: assume gaussian distribution")
-        print("  1: discrete variable calculation")
-        print()
-        print("Options for transformation: ")
-        print("<=0: no transformation of data")
-        print("  1: transform data using a mean-bucketed method")
-        print(">=2: transform data using specified number of quantiles")
-        print()
-        print("ex:\n  \"python bayes.py spambase.data 1 3\"\n  will use 3 buckets and calculate likelihood using a discrete function")
-
+        print("  python bayes_graphing.py filepath")
+        
         return
 
     #Read in data and preprocess it. Replace the parameter with whatever path
     data = readFile(sys.argv[1])
 
-    #Look at the method description above k-fold for usage
-    #Use statistics to get information about the testing for each fold
-    kFold(data, 10, int(sys.argv[2]), int(sys.argv[3]))
+    thresholds = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
+    results = []
+
+    for t in thresholds:
+        print("Using Threshold: ", t)
+        #method: discrete variable calculation
+        #transformation: mean-bucketed method
+        #Use statistics to get information about the testing for each fold
+        statistics = kFold(data, 10, 1, 1, t)
+        train_sum = 0
+        test_sum = 0
+        train_fp_sum = 0
+        test_fp_sum = 0
+        train_fn_sum = 0
+        test_fn_sum = 0
+        for i in range(len(statistics)):
+            train_sum += statistics[0][i][4]
+            test_sum += statistics[1][i][4]
+            train_fp_sum += statistics[0][i][2]/(statistics[0][i][0]+statistics[0][i][1]+statistics[0][i][2]+statistics[0][i][3])
+            test_fp_sum += statistics[1][i][2]/(statistics[1][i][0]+statistics[1][i][1]+statistics[1][i][2]+statistics[1][i][3])
+            train_fn_sum += statistics[0][i][3]/(statistics[0][i][0]+statistics[0][i][1]+statistics[0][i][2]+statistics[0][i][3])
+            test_fn_sum += statistics[1][i][3]/(statistics[1][i][0]+statistics[1][i][1]+statistics[1][i][2]+statistics[1][i][3])
+
+        l = len(statistics)
+        results.append([1-(train_sum/l), train_fp_sum/l, train_fn_sum/l, 
+                        1-(test_sum/l), test_fp_sum/l, test_fn_sum/l])
+
+    results = np.array(results)
+
+
+    #log of thresholds
+    x = [-3, -2, -1, 0, 1, 2, 3]
+    fig, ax = plt.subplots()
+    ax.plot(x, results[:,0], color="red")
+    ax.plot(x, results[:,3], color="blue")
+    ax.set(ylabel='Misclassification Rate', xlabel="log(threshold)",
+           title='Misclassification rate for different thresholds')
+    customLegend = [
+        Line2D([0], [0], color="red", lw=4),
+        Line2D([0], [0], color="blue", lw=4)
+    ]
+    ax.legend(customLegend, ["Training Misclassification", "Testing Misclassification"])
+    plt.show()
+    # plt.savefig('acc.png')
+
+
+    x = [-3, -2, -1, 0, 1, 2, 3]
+    fig, ax = plt.subplots()
+    ax.plot(x, results[:,1], color="orange")
+    ax.plot(x, results[:,2], color="green")
+    ax.set(ylabel='Percentage', xlabel="log(threshold)",
+           title='False positives and negatives for training set')
+    customLegend = [
+        Line2D([0], [0], color="orange", lw=4),
+        Line2D([0], [0], color="green", lw=4)
+    ]
+    ax.legend(customLegend, ["False Positives", "False Negatives"])
+    plt.show()
+    # plt.savefig('train.png')
+
+
+    x = [-3, -2, -1, 0, 1, 2, 3]
+    fig, ax = plt.subplots()
+    ax.plot(x, results[:,4], color="orange")
+    ax.plot(x, results[:,5], color="green")
+    ax.set(ylabel='Percentage', xlabel="log(threshold)",
+           title='False positives and negatives for testing set')
+    customLegend = [
+        Line2D([0], [0], color="orange", lw=4),
+        Line2D([0], [0], color="green", lw=4)
+    ]
+    ax.legend(customLegend, ["False Positives", "False Negatives"])
+    plt.show()
+    # plt.savefig('test.png')
+    
+
+    print(results)
 
 main()
