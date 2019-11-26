@@ -481,6 +481,8 @@ def kFold(data, folds, method, transformation):
     print("Average Testing accuracy:", sum / len(testingStatistics))
     print("Max Testing Accuracy:", max)
 
+    return [trainingStatistics, testingStatistics]
+
 def main():
 
     #Wants arguments in form: bayes.py filename method transformation
