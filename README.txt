@@ -65,5 +65,5 @@ Usage:
   will use 3 buckets and calculate likelihood using a discrete function
 
 Output:
-  Prints TP/FP/TN/FN counts and accuracy for each batch of training and testing over 10 folds
-  Also prints the average training and testing accuracy at the end of training as well as max testing accuracy.
+  Prints TP/FP/TN/FN counts and misclassification for each batch of training and testing over 10 folds
+  Also prints the average training and testing misclassification at the end of training as well as min testing misclassification.
