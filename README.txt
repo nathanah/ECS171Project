@@ -24,27 +24,22 @@ Requires:
   matplotlib
 
 Usage:
-  put usage here
+  To perform a grid search over the number of nodes per layer and number of hidden layers, change max_hidden_layers in main() to one of the options described below. Set the learning rate by changing the lr variable in main and set the value of k for k-fold validation by changing k (again, options below). Setting the activation function, output layer activation function, and loss function is achieved by changing activation_fn, output_fn, and loss_fn respectively. Comment out the call to testing() at the end of the file and call main(). At the end of each fold, the training and testing misclassification error matrices will be printed, where the row corresponds to the number of hidden layers and the column corresponds to the number of nodes per layer.
+  
+  To generate the generalized error, ROC, and PR plots, comment out the call to main() at the end of the file and call testing(). In testing(), set the number of hidden layers and nodes per layer by changing hidden_layers and nodes_per_layer, change the learning rate by setting lr, and set the activation, output and loss functions by changing activation_fn, output_fn, and loss_fn.
+  
 
-Evaluation:
-  The misclassification rate per epoch, Receiver Operating Characteristic (ROC) curve, and Precision-Recall (PR) curve give     insight to a model’s accuracy and efficiency. These three plots are created for any model with the error_plot function.       Figures ___ evaluate models     with parameters determined by grid search.
-  Enter the following model parameters in the Training method:
-
-  Options for activation function:
+  Options for activation/output function:
   "sigmoid"
   "linear"
-  "leaky reLU"
+  layers.LeakyReLU(alpha=0.01)
   "tanh"
-
-  Options for output function:
-  "sigmoid"
-  "linear"
 
   Options for number of hidden layers:
     Any nonzero positive integer
 
   Options for number of nodes per layer:
-    Any nonzero positive integer
+    Any nonzero positive integer (or list of positive integers if setting in main)
 
   Options for learning rate:
     Any nonzero positive number
