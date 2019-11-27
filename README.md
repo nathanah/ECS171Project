@@ -107,6 +107,9 @@ Utilizing Isolation Forest it will graph spam vs not-spam on 2 tSNE dimensions.
 ## Output:
   Prints TP/FP/TN/FN counts and misclassification for each batch of training and testing over 10 folds
   Also prints the average training and testing misclassification at the end of training as well as min testing misclassification.
+  
+# Supplemental: bayes_classifier_extra.py
+ Slightly different classification style created as a reference, and on different but similar data, to help contextualize the performance of/refine the methodology our main classifier. Not involved in the Spambase comparison.
 
 # Bayes graphing: bayes_graphing.py
 ## Requires:
